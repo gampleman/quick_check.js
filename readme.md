@@ -7,11 +7,11 @@ implementation is written in CoffeeScript, but that doesn't matter much).
 Currently it exists as a Jasmine plugin. Expectations are written like this:
 
 ~~~javascript
-# implementation
+// implementation
 function odd(n) {
   return n % 2 === 1;
 }
-# tests
+// tests
 it('#odd returns true for odd numbers', function() {
   expect(function(i) {
     return odd(2 * i + 1);
