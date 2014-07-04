@@ -33,9 +33,8 @@ the test (in this case -4). (Why? Because modulus operator in JavaScript is botc
 
 QuickCheck will stop after 100 generated test cases and assume that your code works.
 
-For more information [check out my talk](https://vimeo.com/98737599):
-
-<iframe src="//player.vimeo.com/video/98737599" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <p><a href="http://vimeo.com/98737599">quick_check.js</a> from <a href="http://vimeo.com/gampleman">Jakub Hampl</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
+For more information [check out my talk](https://vimeo.com/98737599) or read the
+[annotated source code](http://code.gampleman.eu/quick_check.js/).
 
 # Generators
 
