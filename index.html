@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>quick_check.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>quick_check.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>Welcome to quick_check.js. This program is written in CoffeeScript, but the
+source is quite simple and shouldn’t be too dificult to understand.</p>
+<p>We start by defining our main function, <code>qc</code> which performs the actual checking
+and also we use it to namespace all our other public functions. Functions without
+the qc prefix are considered private to this library.</p>
+<p>The qc function will generate 100 test cases and run the supplied property.
+Based on the resulting value, we either succeed, fail or skip the test. Additionally
+if a string is returned we classify the tests based on the returned string.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">qc</span> = <span class="hljs-params">(prop, generators...)</span> -&gt;</span>
+  num = <span class="hljs-number">100</span>; skipped = <span class="hljs-number">0</span>; hist = {}
+  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..num]
+    examples = (generator(i) <span class="hljs-keyword">for</span> generator <span class="hljs-keyword">in</span> generators)
+    result = prop(examples...)
+    <span class="hljs-keyword">if</span> result == <span class="hljs-literal">false</span>
+      skippedString = <span class="hljs-keyword">if</span> skipped &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-string">" (<span class="hljs-subst">#{skipped}</span> skipped)"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Falsified after <span class="hljs-subst">#{i}</span> attempts<span class="hljs-subst">#{skippedString}</span>. Counter-example: <span class="hljs-subst">#{stringify(examples, generators)}</span>"</span>
+    <span class="hljs-keyword">if</span> result == <span class="hljs-literal">undefined</span>
+      num++; skipped++
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> result <span class="hljs-keyword">is</span> <span class="hljs-string">'string'</span>
+      hist[result] = <span class="hljs-keyword">if</span> hist[result]? <span class="hljs-keyword">then</span> hist[result] + <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+
+  skippedString = <span class="hljs-keyword">if</span> skipped &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-string">" (<span class="hljs-subst">#{skipped}</span> skipped)"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  histString = makeHistogram hist, num
+
+  <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">yes</span>, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Passed <span class="hljs-subst">#{num}</span> tests<span class="hljs-subst">#{skippedString}</span>.<span class="hljs-subst">#{histString}</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>When an example fails, we need to convert it to a string to show the user the
+failing test case. Currently if it is a function that failed, we call <code>toString</code>
+on it, otherwise we turn it to JSON. This behavior should be more refined for
+custom types.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">stringify</span> = <span class="hljs-params">(examples)</span> -&gt;</span>
+  (<span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> example <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">then</span> example.toString() <span class="hljs-keyword">else</span> JSON.stringify(example) <span class="hljs-keyword">for</span> example <span class="hljs-keyword">in</span> examples).join(<span class="hljs-string">', '</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>If the user uses categorization for their results, we want to print it out in a
+sorted list with percentages of values that went there.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">makeHistogram</span> = <span class="hljs-params">(hist, total)</span> -&gt;</span>
+  hist = ({label, count} <span class="hljs-keyword">for</span> label, count <span class="hljs-keyword">of</span> hist)
+  hist.sort <span class="hljs-function"><span class="hljs-params">({count: a}, {count: b})</span> -&gt;</span> a - b
+  <span class="hljs-string">"\n"</span> + hist.map<span class="hljs-function"><span class="hljs-params">(({label: label, count: count}) -&gt; <span class="hljs-string">"<span class="hljs-subst">#{((count / total) * <span class="hljs-number">100</span>).toFixed(<span class="hljs-number">2</span>)}</span>% <span class="hljs-subst">#{label}</span>"</span>)</span>.<span class="hljs-title">join</span><span class="hljs-params">(<span class="hljs-string">"\n"</span>)</span>
+
+</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p><code>qc.forAll</code> is a convenience method for executing quick checks, but the return values are
+ignored. This is useful with seperate expectations:</p>
+<pre><code>qc.forAll qc.int, <span class="hljs-function"><span class="hljs-params">(i)</span> -&gt;</span> expect(i + i).toBe(<span class="hljs-number">2</span> * i)
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">forAll</span> = <span class="hljs-params">(generators..., prop)</span> -&gt;</span>
+  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.<span class="hljs-number">.100</span>]
+    examples = (generator(i) <span class="hljs-keyword">for</span> generator <span class="hljs-keyword">in</span> generators)
+    prop(examples...)
+  <span class="hljs-keyword">return</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>We make our own alias of the random function. When writing your own generators,
+use of this is required, because some planned features in the future may require
+use of a custom generator.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.random = Math.random</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>We make this globally available.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-property">@qc</span> = qc</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <h1 id="generators">Generators</h1>
+<p>This library bundle a number of simple generators that help for testing a lot of
+common functionality but can also be used by composition in your custom generators.
+Finally these generators can be used as examples how to write your own generators.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>A generator is a function that accepts an optional <code>size</code> parameter and returns a random value.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <h3 id="basic-generators">Basic generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Generates a random boolean.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">bool</span> =  -&gt;</span> qc.choose(<span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Generates a random integer between 0 and 255.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">byte</span> = -&gt;</span> Math.floor(qc.random() * <span class="hljs-number">256</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Generates random objects by calling the constructor with random arguments.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">constructor</span> = <span class="hljs-params">(cons, arggens...)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    args = (arggen(size - <span class="hljs-number">1</span>) <span class="hljs-keyword">for</span> arggen <span class="hljs-keyword">in</span> arggens)
+    <span class="hljs-keyword">new</span> cons(args...)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Generates a random value by calling a function with random arguments.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">fromFunction</span> = <span class="hljs-params">(fun, arggens...)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    args = (arggen(size - <span class="hljs-number">1</span>) <span class="hljs-keyword">for</span> arggen <span class="hljs-keyword">in</span> arggens)
+    fun(args...)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Return a function that randomly chooses one of the arguments passed to <code>qc.pick</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">pick</span> =  <span class="hljs-params">(range...)</span> -&gt;</span>
+  range = range[<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> arguments.length ==  <span class="hljs-number">1</span><span class="hljs-function">
+  -&gt;</span> range[Math.floor(qc.random() * range.length)]
+
+qc.<span class="hljs-function"><span class="hljs-title">choose</span> =  <span class="hljs-params">(range...)</span> -&gt;</span> qc.pick(range...)()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <h3 id="generator-combinators">Generator combinators</h3>
+<p>These combinator functions are meant to create new generators out of other generators.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p><code>qc.oneOf</code> will choose between all the generators passed to it (accepts also an array of generators)
+and generate a value from it. For example:</p>
+<pre><code>stringOrNumber = qc.oneOf(qc.string, qc.real)
+stringOrNumber(size) <span class="hljs-regexp">//</span> <span class="hljs-string">"frqw"</span>
+stringOrNumber(size) <span class="hljs-regexp">//</span> <span class="hljs-number">5.54</span>
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">oneOf</span> =  <span class="hljs-params">(generators...)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    qc.choose(generators...)(size)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p><code>qc.except</code> will run the generator passed to it as normal, but when it generates
+one of the <code>values</code> passed to it, it will try the generator again to guarantee that
+the generator will generate a value other then any of the values. So <code>qc.except(qc.uint, 0)(size)</code>
+will generate a natural number, since <code>qc.uint</code> it will generate a random positive integer,
+and if it generates 0, it will try again.</p>
+<p>This is quite a naive implementation as it will simply try again if the generator
+does generate one of the values. If the probability of generating one of these
+values is high, this can really kill performace, so for those cases a custom
+implementation might be better (e.g. the string generator does this).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">except</span> =  <span class="hljs-params">(generator, values...)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-title">anyMatches</span> = <span class="hljs-params">(expect)</span> -&gt;</span> <span class="hljs-keyword">return</span> (<span class="hljs-literal">true</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> values <span class="hljs-keyword">when</span> v <span class="hljs-keyword">is</span> expect).length &gt; <span class="hljs-number">0</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    <span class="hljs-keyword">loop</span>
+      value = generator(size)
+      <span class="hljs-keyword">return</span> value <span class="hljs-keyword">unless</span> anyMatches value</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <h3 id="number-generators">Number generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Almost all number generators have a large variant for generating larger numbers,
+as the standard generators tend not to generate numbers bigger than 10,000. The
+generators prefixed with <code>u</code> generate only positive numbers.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">intUpto</span> =  <span class="hljs-params">(size)</span> -&gt;</span> Math.floor(qc.random() * size)
+
+qc.<span class="hljs-function"><span class="hljs-title">ureal</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.random() * size * size
+qc.ureal.<span class="hljs-function"><span class="hljs-title">large</span> = -&gt;</span> qc.random() * Number.MAX_VALUE
+
+qc.<span class="hljs-function"><span class="hljs-title">real</span> =  <span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.ureal(size)
+qc.real.<span class="hljs-function"><span class="hljs-title">large</span> = -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.ureal.large()
+
+qc.<span class="hljs-function"><span class="hljs-title">uint</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.intUpto(size * size)
+qc.uint.<span class="hljs-function"><span class="hljs-title">large</span> = -&gt;</span> Math.floor(qc.random() * Number.MAX_VALUE)
+
+qc.<span class="hljs-function"><span class="hljs-title">int</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.intUpto(size)
+qc.int.<span class="hljs-function"><span class="hljs-title">large</span> = -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.uint.large()
+qc.int.<span class="hljs-function"><span class="hljs-title">between</span> = <span class="hljs-params">(min, max)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    min + qc.intUpto(Math.min(max + <span class="hljs-number">1</span> - min, size))</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <h3 id="array-generators">Array generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p><code>qc.arrayOf(generator)</code> will return a random generator, which will generate
+an array from that generator.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">arrayOf</span> =  <span class="hljs-params">(generator)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    generator(i) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.qc.intUpto(size)]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p><code>qc.array</code> will generate a random array of any type.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">array</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.arrayOf(qc.any)(<span class="hljs-keyword">if</span> size &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> size - <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <h3 id="function-generators">Function generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Generating a function has several limitations. Firstly we will only want to
+generate pure functions. A pure function can take a number of arguments and returns
+a value. Such a function is fundamentally a lookup table where the return value
+can be found through the arguments. In general the problem is that for some (most)
+functions the table is infinite. However any program that actually runs will only
+ever explore a finite portion of this table. So for a particular run of a program,
+and for a function f that we can represent with the infinite table x, we can
+find a finite table x’ that will fully simulate the behavior of the function f.</p>
+<p>We exploit this fact in quick check. Our function generator creates an empty table,
+and then returns a function which will lookup the arguments passed to it. If the
+arguments are present in the table, the return value is returned. Otherwise a
+random value is generated and stored with the arguments in the table.</p>
+<p>Finally we override the toString method of the returned function to emit human
+readable source code.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">function</span> =  <span class="hljs-params">(args..., returnGenerator)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-title">generator</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+    generator.calls = []
+    <span class="hljs-function"><span class="hljs-title">result</span> = <span class="hljs-params">(someArgs...)</span> -&gt;</span>
+      <span class="hljs-keyword">return</span> value <span class="hljs-keyword">for</span> [callArgs..., value] <span class="hljs-keyword">in</span> generator.calls <span class="hljs-keyword">when</span> arraysEqual(callArgs, someArgs)
+      value = returnGenerator(size)
+      generator.calls.push([someArgs..., value])
+      <span class="hljs-keyword">return</span> value
+    result.<span class="hljs-function"><span class="hljs-title">toString</span> = -&gt;</span>
+      calls = generator.calls
+      <span class="hljs-keyword">if</span> calls.length == <span class="hljs-number">0</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"function() { return <span class="hljs-subst">#{JSON.stringify returnGenerator(<span class="hljs-number">10</span>)}</span>; }"</span>
+      argNames = (String.fromCharCode(i + <span class="hljs-number">97</span>) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..calls[<span class="hljs-number">0</span>].length-<span class="hljs-number">1</span>])
+      clauses = <span class="hljs-keyword">for</span> [args..., value], pos <span class="hljs-keyword">in</span> calls
+        condition = (<span class="hljs-string">"<span class="hljs-subst">#{argNames[i]}</span> === <span class="hljs-subst">#{JSON.stringify arg}</span>"</span> <span class="hljs-keyword">for</span> arg, i <span class="hljs-keyword">in</span> args).join(<span class="hljs-string">' &amp;&amp; '</span>)
+        <span class="hljs-keyword">if</span> calls.length == <span class="hljs-number">1</span>
+          <span class="hljs-string">"return <span class="hljs-subst">#{JSON.stringify value}</span>;"</span>
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> pos == calls.length - <span class="hljs-number">1</span>
+          <span class="hljs-string">"{\n    return <span class="hljs-subst">#{JSON.stringify value}</span>;\n  }"</span>
+        <span class="hljs-keyword">else</span>
+          <span class="hljs-string">"if (<span class="hljs-subst">#{condition}</span>) {\n    return <span class="hljs-subst">#{JSON.stringify value}</span>;\n  }"</span>
+      <span class="hljs-string">"""
+
+      function(<span class="hljs-subst">#{argNames.join(<span class="hljs-string">", "</span>)}</span>) {
+        <span class="hljs-subst">#{clauses.join(<span class="hljs-string">" else "</span>)}</span>
+      }
+      """</span>
+    result
+  generator</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>To lookup things in the table we need a notion of equality. QuickCheck currently
+supports only equality testing with <code>===</code>, however in future versions we will
+hopefully lift this limitation.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">arraysEqual</span> = <span class="hljs-params">(a1, a2)</span> -&gt;</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> <span class="hljs-keyword">if</span> a1.length != a2.length
+  <span class="hljs-keyword">for</span> arg, i <span class="hljs-keyword">in</span> a1
+    <span class="hljs-keyword">if</span> arg != a2[i]
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <h3 id="object-generators">Object generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p><code>qc.objectLike</code> accepts a template of an object with random generators as values,
+and returns a generator of that form of object.</p>
+<pre><code>qc.objectLike({
+  <span class="hljs-attribute">hello</span>: <span class="hljs-string">"world"</span>,
+  <span class="hljs-attribute">name</span>: qc.string.matching(<span class="hljs-regexp">/^m(r|s)\. [A-Z][a-z]{3,9}$/</span>)
+})(size) <span class="hljs-regexp">//</span> <span class="hljs-attribute">generates</span>:
+{
+  <span class="hljs-attribute">hello</span>: <span class="hljs-string">"world"</span>,
+  <span class="hljs-attribute">name</span>: <span class="hljs-string">"mr. Dasde"</span>
+}
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">objectLike</span> = <span class="hljs-params">(template)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    result = {}
+    <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">of</span> template
+      <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> value == <span class="hljs-string">'function'</span>
+        result[key] = value(size)
+      <span class="hljs-keyword">else</span>
+        result[key] = value
+    result</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p><code>qc.objectOf</code> generates an object containing the passed type as its values.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">objectOf</span> =  <span class="hljs-params">(generator)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    result = {}
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.qc.intUpto(size)]
+      result[qc.string(size)] = generator(i)
+    result</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p><code>qc.object</code> generates an object containing random types</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.object = qc.objectOf(qc.any)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <h3 id="string-generators">String generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p><code>qc.char</code> will return a random string with a single chararcter.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">char</span> =  -&gt;</span> String.fromCharCode(qc.byte())</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p><code>qc.string</code> will generate a string of random charachters.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">string</span> =  <span class="hljs-params">(size)</span> -&gt;</span> qc.arrayOf(qc.char)(size).join(<span class="hljs-string">''</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p><code>qc.string.ascii</code> will generate a string of random ascii charachters.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.string.<span class="hljs-function"><span class="hljs-title">ascii</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+  gen = qc.pick(makeRange(<span class="hljs-string">'a'</span>, <span class="hljs-string">'z'</span>, <span class="hljs-literal">true</span>).concat(makeRange(<span class="hljs-string">'0'</span>, <span class="hljs-string">'9'</span>)).concat([<span class="hljs-string">'_'</span>, <span class="hljs-string">' '</span>, <span class="hljs-string">'\n'</span>]))
+  qc.arrayOf(gen)(size).join(<span class="hljs-string">''</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p><code>qc.string.concat</code> is a generator combinator (see above) that will generate all
+the generators passed to it and then concatenate them into a single string.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.string.<span class="hljs-function"><span class="hljs-title">concat</span> = <span class="hljs-params">(gens)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> (gen(size) <span class="hljs-keyword">for</span> gen <span class="hljs-keyword">in</span> gens).join(<span class="hljs-string">''</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p><code>qc.string.matching(regexp)</code> will generate a random string matching a regular
+expression. In order to do that the regular expression must be parsed and compiled
+into a generator function. This is an example of a very non-trivial generator.</p>
+<p>We make use of a number of smaller generators and generator combinators. Some of
+them, which are of general use are exposed publicly above.</p>
+<p>In regular expressions the basic elements are:</p>
+<ul>
+<li>literals, which translate to themselves (or to their uppercase variants)</li>
+<li>dots, which can stand for anything</li>
+<li>repeaters of various kinds (these are combinators that generate another generator
+a set amount of times and concat the results)</li>
+<li>ranges of characters (we can use the <code>qc.pick</code> generator to make these). We
+have two helper functions, one for the <code>/[a-z]/</code> style ranges, the other for
+negated ranges <code>/[^b]/</code>.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>generator =
+  <span class="hljs-attribute">literal</span>: <span class="hljs-function"><span class="hljs-params">(lit, caseInsensitive)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> caseInsensitive<span class="hljs-function">
+     -&gt;</span> qc.choose(lit.toLowerCase(), lit.toUpperCase())
+    <span class="hljs-keyword">else</span><span class="hljs-function">
+     -&gt;</span> lit
+  <span class="hljs-attribute">dot</span>: qc.except(qc.char, <span class="hljs-string">'\n'</span>)
+  <span class="hljs-attribute">repeat</span>: <span class="hljs-function"><span class="hljs-params">(gen, min, max)</span> -&gt;</span>
+    <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+      (gen(size) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..qc.int.between(min, max)(size)]).join(<span class="hljs-string">''</span>)
+
+<span class="hljs-function"><span class="hljs-title">makeRange</span> = <span class="hljs-params">(from, to, caseInsensitive)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> caseInsensitive
+    lowerCase = (String.fromCharCode(charCode) <span class="hljs-keyword">for</span> charCode <span class="hljs-keyword">in</span> [from.toLowerCase().charCodeAt(<span class="hljs-number">0</span>)..to.toLowerCase().charCodeAt(<span class="hljs-number">0</span>)])
+    upperCase = (String.fromCharCode(charCode) <span class="hljs-keyword">for</span> charCode <span class="hljs-keyword">in</span> [from.toUpperCase().charCodeAt(<span class="hljs-number">0</span>)..to.toUpperCase().charCodeAt(<span class="hljs-number">0</span>)])
+    lowerCase.concat(upperCase)
+  <span class="hljs-keyword">else</span>
+    String.fromCharCode(charCode) <span class="hljs-keyword">for</span> charCode <span class="hljs-keyword">in</span> [from.charCodeAt(<span class="hljs-number">0</span>)..to.charCodeAt(<span class="hljs-number">0</span>)]
+
+<span class="hljs-function"><span class="hljs-title">makeComplimentaryRange</span> = <span class="hljs-params">(range)</span> -&gt;</span>
+  String.fromCharCode(char) <span class="hljs-keyword">for</span> char <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span><span class="hljs-number">.256</span>] <span class="hljs-keyword">when</span> <span class="hljs-keyword">not</span> (String.fromCharCode(char) <span class="hljs-keyword">in</span> range)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>Captures in our context are mostly useful for regexps where the use of backrefs
+is made. <code>/^([a-z]) = (\d) * \(\1 \/ \2\)$</code> will result in a meaningful string like
+<code>c = 21 * (c / 21)</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">capture</span> = <span class="hljs-params">(gen, captures, captureLevel)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    value = gen(size)
+    captures[captureLevel.toString()] ?= []
+    captures[captureLevel.toString()].push(value)
+    value</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>We need some special behavior for characters following the <code>\</code>. This function
+provides that.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">handleClass</span> = <span class="hljs-params">(token, captures, captureLevel)</span> -&gt;</span>
+  <span class="hljs-keyword">switch</span> token
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'w'</span>
+      makeRange(<span class="hljs-string">'a'</span>, <span class="hljs-string">'z'</span>, <span class="hljs-literal">true</span>).concat(makeRange(<span class="hljs-string">'0'</span>, <span class="hljs-string">'9'</span>)).concat([<span class="hljs-string">'_'</span>])
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'W'</span>
+      makeComplimentaryRange(makeRange(<span class="hljs-string">'a'</span>, <span class="hljs-string">'z'</span>, <span class="hljs-literal">true</span>).concat(makeRange(<span class="hljs-string">'0'</span>, <span class="hljs-string">'9'</span>)).concat([<span class="hljs-string">'_'</span>]))
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'d'</span>
+      makeRange(<span class="hljs-string">'0'</span>, <span class="hljs-string">'9'</span>)
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'D'</span>
+      makeComplimentaryRange(makeRange(<span class="hljs-string">'0'</span>, <span class="hljs-string">'9'</span>))
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'s'</span>
+      [<span class="hljs-string">' '</span>, <span class="hljs-string">'\f'</span>, <span class="hljs-string">'\n'</span>, <span class="hljs-string">'\r'</span>, <span class="hljs-string">'\t'</span>, <span class="hljs-string">'\v'</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'S'</span>
+      makeComplimentaryRange([<span class="hljs-string">' '</span>, <span class="hljs-string">'\f'</span>, <span class="hljs-string">'\n'</span>, <span class="hljs-string">'\r'</span>, <span class="hljs-string">'\t'</span>, <span class="hljs-string">'\v'</span>])
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'n'</span>
+      [<span class="hljs-string">"\n"</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'t'</span>
+      [<span class="hljs-string">"\t"</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'v'</span>
+      [<span class="hljs-string">"\v"</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'b'</span>
+      [<span class="hljs-string">'\b'</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'f'</span>
+      [<span class="hljs-string">'\f'</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'r'</span>
+      [<span class="hljs-string">'\r'</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">'c'</span>
+      <span class="hljs-keyword">throw</span> <span class="hljs-string">'Control sequences not supported'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>Captures are stored in a fairly complex data structure. The reason is that
+members of the data structure often need to be accessed before their parents
+are finished parsing. So we cannot use a simple array. For example consider
+the case of <code>/((a)\2)/</code>. Here <code>\2</code> is requested before <code>\1</code> is done being parsed.</p>
+<p>Therefore we store it in a hash where the recursive depth is the key, and the
+value is an array of all captures on that level.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">when</span> <span class="hljs-string">'1'</span>, <span class="hljs-string">'2'</span>, <span class="hljs-string">'3'</span>, <span class="hljs-string">'4'</span>, <span class="hljs-string">'5'</span>, <span class="hljs-string">'6'</span>, <span class="hljs-string">'7'</span>, <span class="hljs-string">'8'</span>, <span class="hljs-string">'9'</span>
+      <span class="hljs-keyword">if</span> captures
+        index = parseInt<span class="hljs-function"><span class="hljs-params">(token, <span class="hljs-number">10</span>)</span>
+        -&gt;</span>
+          offset = <span class="hljs-number">0</span>
+          <span class="hljs-keyword">for</span> level <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span><span class="hljs-number">.9</span>]
+            <span class="hljs-keyword">if</span> captures[level.toString()]?
+              <span class="hljs-keyword">if</span> index - offset &lt; captures[level.toString()].length
+                <span class="hljs-keyword">return</span> captures[level.toString()][index - offset]
+              <span class="hljs-keyword">else</span>
+                offset += captures[level.toString()].length
+            <span class="hljs-keyword">else</span>
+              offset += <span class="hljs-number">1</span>
+    <span class="hljs-keyword">else</span>
+      [token]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <p>Now that we have all the basic elements in place we can do the actual parsing.
+This is done recursively for all groups (e.g. anything wrapped with parentheses).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">generatorForPattern</span> = <span class="hljs-params">(toks, caseInsensitive, captures, captureLevel)</span> -&gt;</span>
+  gens = []
+  <span class="hljs-keyword">while</span> toks.length &gt; <span class="hljs-number">0</span>
+    token = toks.shift()
+    <span class="hljs-keyword">if</span> token.match(<span class="hljs-regexp">/[\w\s=]/i</span>)
+      gens.push(generator.literal(token, caseInsensitive))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'^'</span>
+      captures.isHookedFromStart = <span class="hljs-literal">yes</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'$'</span>
+      captures.isHookedFromEnd = <span class="hljs-literal">yes</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'.'</span>
+      gens.push(generator.dot)
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'*'</span>
+      <span class="hljs-keyword">if</span> toks[<span class="hljs-number">0</span>] == <span class="hljs-string">'?'</span>
+        toks.shift()
+        gens.push(generator.repeat(gens.pop(), <span class="hljs-number">0</span>, <span class="hljs-number">10</span>))
+      <span class="hljs-keyword">else</span>
+        gens.push(generator.repeat(gens.pop(), <span class="hljs-number">0</span>, <span class="hljs-number">100</span>))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'?'</span>
+      gens.push(generator.repeat(gens.pop(), <span class="hljs-number">0</span>, <span class="hljs-number">1</span>))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'+'</span>
+      <span class="hljs-keyword">if</span> toks[<span class="hljs-number">0</span>] == <span class="hljs-string">'?'</span>
+        toks.shift()
+        gens.push(generator.repeat(gens.pop(), <span class="hljs-number">1</span>, <span class="hljs-number">10</span>))
+      <span class="hljs-keyword">else</span>
+        gens.push(generator.repeat(gens.pop(), <span class="hljs-number">1</span>, <span class="hljs-number">100</span>))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'|'</span>
+      <span class="hljs-keyword">return</span> qc.oneOf(qc.string.concat(gens), generatorForPattern(toks))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'['</span> <span class="hljs-comment"># Character class</span>
+      charachters = []
+      negative = <span class="hljs-literal">false</span>
+      <span class="hljs-keyword">loop</span>
+        char = toks.shift()
+        <span class="hljs-keyword">if</span> char == <span class="hljs-string">']'</span>
+          <span class="hljs-keyword">break</span>
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> char <span class="hljs-keyword">is</span> <span class="hljs-string">'^'</span>
+          negative = <span class="hljs-literal">true</span>
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> char <span class="hljs-keyword">is</span> <span class="hljs-string">'\\'</span>
+          charachters = charachters.concat(handleClass(toks.shift()))
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> char <span class="hljs-keyword">is</span> <span class="hljs-string">'-'</span>
+          charachters = charachters.concat(makeRange(charachters.pop(), toks.shift(), caseInsensitive))
+        <span class="hljs-keyword">else</span>
+          charachters.push(char)
+      <span class="hljs-keyword">if</span> negative
+        gens.push(qc.pick(makeComplimentaryRange(charachters)))
+      <span class="hljs-keyword">else</span>
+        gens.push(qc.pick(charachters))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">')'</span>
+      <span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'\\'</span>
+      chars = handleClass(toks.shift(), captures, captureLevel)
+      <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> chars <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span>
+        gens.push(chars)
+      <span class="hljs-keyword">else</span>
+        gens.push(qc.pick(chars))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'{'</span>
+      subtoken = toks.shift()
+      str = <span class="hljs-string">''</span>
+      <span class="hljs-keyword">until</span> subtoken == <span class="hljs-string">','</span> || subtoken == <span class="hljs-string">'}'</span>
+        str += subtoken
+        subtoken = toks.shift()
+      from = parseInt(str, <span class="hljs-number">10</span>)
+      <span class="hljs-keyword">if</span> subtoken == <span class="hljs-string">'}'</span>
+        to = from
+      <span class="hljs-keyword">else</span>
+        str = <span class="hljs-string">''</span>
+        subtoken = toks.shift()
+        <span class="hljs-keyword">if</span> subtoken == <span class="hljs-string">'}'</span>
+          to = <span class="hljs-number">100</span>
+        <span class="hljs-keyword">else</span>
+          <span class="hljs-keyword">until</span> subtoken == <span class="hljs-string">'}'</span>
+            str += subtoken
+            subtoken = toks.shift()
+          to = parseInt(str, <span class="hljs-number">10</span>)
+      gens.push(generator.repeat(gens.pop(), from, to))
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'('</span>
+      <span class="hljs-keyword">if</span> toks[<span class="hljs-number">0</span>] == <span class="hljs-string">'?'</span> &amp;&amp; (toks[<span class="hljs-number">1</span>] == <span class="hljs-string">':'</span> || toks[<span class="hljs-number">1</span>] == <span class="hljs-string">'='</span>)
+        toks.shift()
+        toks.shift()
+        gens.push(generatorForPattern(toks, caseInsensitive, captures, captureLevel))
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> toks[<span class="hljs-number">0</span>] == <span class="hljs-string">'?'</span> &amp;&amp; toks[<span class="hljs-number">1</span>] == <span class="hljs-string">'!'</span>
+        toks.shift()
+        toks.shift()
+        <span class="hljs-keyword">throw</span> <span class="hljs-string">"Negative lookahead is not supported."</span>
+      <span class="hljs-keyword">else</span>
+        gens.push(capture(generatorForPattern(toks, caseInsensitive, captures, captureLevel + <span class="hljs-number">1</span>), captures, captureLevel))
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-built_in">console</span>.log <span class="hljs-string">"Usuported characher: '<span class="hljs-subst">#{token}</span>'"</span>
+      <span class="hljs-keyword">throw</span> <span class="hljs-string">"Usuported characher: '<span class="hljs-subst">#{token}</span>'"</span>
+  qc.string.concat(gens)
+
+qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> = <span class="hljs-params">(pattern)</span> -&gt;</span>
+  toks = pattern.source.split(<span class="hljs-string">''</span>)
+  captures = {}
+  patternGenerator = capture(generatorForPattern(toks, pattern.ignoreCase, captures, <span class="hljs-number">1</span>), captures, <span class="hljs-number">0</span>)
+  <span class="hljs-keyword">if</span> pattern.<span class="hljs-built_in">global</span> &amp;&amp; !captures.isHookedFromStart &amp;&amp; !captures.isHookedFromEnd
+    generator.repeat(qc.oneOf(patternGenerator, qc.string), <span class="hljs-number">1</span>, <span class="hljs-number">10</span>)
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> !captures.isHookedFromStart &amp;&amp; !captures.isHookedFromEnd
+    qc.string.concat([qc.string, patternGenerator, qc.string])
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> !captures.isHookedFromStart &amp;&amp; captures.isHookedFromEnd
+    qc.string.concat([qc.string, patternGenerator])
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> captures.isHookedFromStart &amp;&amp; !captures.isHookedFromEnd
+    qc.string.concat([patternGenerator, qc.string])
+  <span class="hljs-keyword">else</span>
+    patternGenerator</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <h3 id="misc-generators">Misc generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-41">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <p>qc.date will generate a random date</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.date =  qc.constructor Date, qc.uint.large</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-42">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              <h1 id="jasmine-integration">Jasmine integration</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-43">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <p>Integrating into Jasmine is very simple. Feel free to contribute adapters for
+other testing toolkits.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>beforeEach<span class="hljs-function"> -&gt;</span>
+  jasmine.addMatchers
+    <span class="hljs-attribute">forAll</span>:<span class="hljs-function"> -&gt;</span>
+      <span class="hljs-attribute">compare</span>: qc</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
