@@ -1,24 +1,26 @@
-###*
-qc.bool will randomly return `true` or `false`.
-###
+# # Generators
+# This library bundle a number of simple generators that help for testing a lot of
+# common functionality but can also be used by composition in your custom generators.
+# Finally these generators can be used as examples how to write your own generators.
+
+# A generator is a function that accepts an optional `size` parameter and returns a random value.
+
+# ### Basic generators
+
+# Generates a random boolean.
 qc.bool =  -> qc.choose(true, false)
 
-###*
-qc.byte will return a random integer from 0 to 255.
-###
+# Generates a random integer between 0 and 255.
 qc.byte = -> Math.floor(qc.random() * 256)
 
-###*
-qc.constructor will generate random objects by calling the constructor randomly
-###
+
+# Generates random objects by calling the constructor with random arguments.
 qc.constructor = (cons, arggens...) ->
   (size) ->
     args = (arggen(size - 1) for arggen in arggens)
     new cons(args...)
 
-###*
-qc.fromFunction will generate random values by calling a function with random args
-###
+# Generates a random value by calling a function with random arguments.
 qc.fromFunction = (fun, arggens...) ->
   (size) ->
     args = (arggen(size - 1) for arggen in arggens)

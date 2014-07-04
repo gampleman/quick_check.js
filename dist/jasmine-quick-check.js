@@ -15,51 +15,6 @@
   var makeHistogram, qc, stringify,
     __slice = [].slice;
 
-  stringify = function(examples, generators) {
-    var example, generator, i;
-    return ((function() {
-      var _i, _len, _results;
-      _results = [];
-      for (i = _i = 0, _len = examples.length; _i < _len; i = ++_i) {
-        example = examples[i];
-        generator = generators[i];
-        if (generator.stringify) {
-          _results.push(generator.stringify(example));
-        } else {
-          _results.push(JSON.stringify(example));
-        }
-      }
-      return _results;
-    })()).join(', ');
-  };
-
-  makeHistogram = function(hist, total) {
-    var count, label;
-    hist = (function() {
-      var _results;
-      _results = [];
-      for (label in hist) {
-        count = hist[label];
-        _results.push({
-          label: label,
-          count: count
-        });
-      }
-      return _results;
-    })();
-    hist.sort(function(_arg, _arg1) {
-      var a, b;
-      a = _arg.count;
-      b = _arg1.count;
-      return a - b;
-    });
-    return "\n" + hist.map(function(_arg) {
-      var count, label;
-      label = _arg.label, count = _arg.count;
-      return "" + (((count / total) * 100).toFixed(2)) + "% " + label;
-    }).join("\n");
-  };
-
   qc = function() {
     var examples, generator, generators, hist, histString, i, num, prop, result, skipped, skippedString, _i;
     prop = arguments[0], generators = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
@@ -100,11 +55,49 @@
     };
   };
 
+  stringify = function(examples) {
+    var example;
+    return ((function() {
+      var _i, _len, _results;
+      if (typeof example === 'function') {
+        return example.toString();
+      } else {
+        _results = [];
+        for (_i = 0, _len = examples.length; _i < _len; _i++) {
+          example = examples[_i];
+          _results.push(JSON.stringify(example));
+        }
+        return _results;
+      }
+    })()).join(', ');
+  };
 
-  /**
-  qc.forAll is a convenience method for executing quick checks, but the return values are
-  ignored. This is useful with seperate expections.
-   */
+  makeHistogram = function(hist, total) {
+    var count, label;
+    hist = (function() {
+      var _results;
+      _results = [];
+      for (label in hist) {
+        count = hist[label];
+        _results.push({
+          label: label,
+          count: count
+        });
+      }
+      return _results;
+    })();
+    hist.sort(function(_arg, _arg1) {
+      var a, b;
+      a = _arg.count;
+      b = _arg1.count;
+      return a - b;
+    });
+    return "\n" + hist.map(function(_arg) {
+      var count, label;
+      label = _arg.label, count = _arg.count;
+      return "" + (((count / total) * 100).toFixed(2)) + "% " + label;
+    }).join("\n");
+  };
 
   qc.forAll = function() {
     var examples, generator, generators, i, prop, _i, _j;
@@ -125,37 +118,9 @@
 
   qc.random = Math.random;
 
-
-  /**
-  qc.objectLike accepts a template of an object with random generators as values,
-  and returns a generator of that form of object.
-   */
-
-  qc.objectLike = function(template) {
-    return function(size) {
-      var key, result, value;
-      result = {};
-      for (key in template) {
-        value = template[key];
-        if (typeof value === 'function') {
-          result[key] = value(size);
-        } else {
-          result[key] = value;
-        }
-      }
-      return result;
-    };
-  };
-
-  window.qc = qc;
+  this.qc = qc;
 
 }).call(this);
-
-
-/**
-qc.arrayOf will return a random generator, which will generate an array of types
-from that generator.
- */
 
 (function() {
   qc.arrayOf = function(generator) {
@@ -169,21 +134,11 @@ from that generator.
     };
   };
 
-
-  /**
-  qc.array will generate a random array of any type.
-   */
-
   qc.array = function(size) {
     return qc.arrayOf(qc.any)(size > 1 ? size - 1 : 0);
   };
 
 }).call(this);
-
-
-/**
-qc.bool will randomly return `true` or `false`.
- */
 
 (function() {
   var __slice = [].slice;
@@ -192,19 +147,9 @@ qc.bool will randomly return `true` or `false`.
     return qc.choose(true, false);
   };
 
-
-  /**
-  qc.byte will return a random integer from 0 to 255.
-   */
-
   qc.byte = function() {
     return Math.floor(qc.random() * 256);
   };
-
-
-  /**
-  qc.constructor will generate random objects by calling the constructor randomly
-   */
 
   qc.constructor = function() {
     var arggens, cons;
@@ -228,11 +173,6 @@ qc.bool will randomly return `true` or `false`.
     };
   };
 
-
-  /**
-  qc.fromFunction will generate random values by calling a function with random args
-   */
-
   qc.fromFunction = function() {
     var arggens, fun;
     fun = arguments[0], arggens = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
@@ -253,11 +193,6 @@ qc.bool will randomly return `true` or `false`.
 
 }).call(this);
 
-
-/**
-qc.pick will return a function that randomly chooses one of its arguments.
- */
-
 (function() {
   var __slice = [].slice;
 
@@ -272,22 +207,11 @@ qc.pick will return a function that randomly chooses one of its arguments.
     };
   };
 
-
-  /**
-  qc.choose will randomly choose one of its arguments. If only one argument is passed,
-  it is assumed that that argument is an array of possibilities.
-   */
-
   qc.choose = function() {
     var range;
     range = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
     return qc.pick.apply(qc, range)();
   };
-
-
-  /**
-  qc.oneOf combines generators into one generator.
-   */
 
   qc.oneOf = function() {
     var generators;
@@ -296,11 +220,6 @@ qc.pick will return a function that randomly chooses one of its arguments.
       return qc.choose.apply(qc, generators)(size);
     };
   };
-
-
-  /**
-  qc.except will generate a value, but not any of the normal types
-   */
 
   qc.except = function() {
     var anyMatches, generator, values;
@@ -336,6 +255,71 @@ qc.pick will return a function that randomly chooses one of its arguments.
   var arraysEqual,
     __slice = [].slice;
 
+  qc["function"] = function() {
+    var args, generator, returnGenerator, _i;
+    args = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), returnGenerator = arguments[_i++];
+    generator = function(size) {
+      var result;
+      generator.calls = [];
+      result = function() {
+        var callArgs, someArgs, value, _j, _k, _len, _ref, _ref1;
+        someArgs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        _ref = generator.calls;
+        for (_j = 0, _len = _ref.length; _j < _len; _j++) {
+          _ref1 = _ref[_j], callArgs = 2 <= _ref1.length ? __slice.call(_ref1, 0, _k = _ref1.length - 1) : (_k = 0, []), value = _ref1[_k++];
+          if (arraysEqual(callArgs, someArgs)) {
+            return value;
+          }
+        }
+        value = returnGenerator(size);
+        generator.calls.push(__slice.call(someArgs).concat([value]));
+        return value;
+      };
+      result.toString = function() {
+        var arg, argNames, calls, clauses, condition, i, pos, value;
+        calls = generator.calls;
+        if (calls.length === 0) {
+          return "function() { return " + (JSON.stringify(returnGenerator(10))) + "; }";
+        }
+        argNames = (function() {
+          var _j, _ref, _results;
+          _results = [];
+          for (i = _j = 0, _ref = calls[0].length - 1; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
+            _results.push(String.fromCharCode(i + 97));
+          }
+          return _results;
+        })();
+        clauses = (function() {
+          var _j, _k, _len, _ref, _results;
+          _results = [];
+          for (pos = _j = 0, _len = calls.length; _j < _len; pos = ++_j) {
+            _ref = calls[pos], args = 2 <= _ref.length ? __slice.call(_ref, 0, _k = _ref.length - 1) : (_k = 0, []), value = _ref[_k++];
+            condition = ((function() {
+              var _l, _len1, _results1;
+              _results1 = [];
+              for (i = _l = 0, _len1 = args.length; _l < _len1; i = ++_l) {
+                arg = args[i];
+                _results1.push("" + argNames[i] + " === " + (JSON.stringify(arg)));
+              }
+              return _results1;
+            })()).join(' && ');
+            if (calls.length === 1) {
+              _results.push("return " + (JSON.stringify(value)) + ";");
+            } else if (pos === calls.length - 1) {
+              _results.push("{\n    return " + (JSON.stringify(value)) + ";\n  }");
+            } else {
+              _results.push("if (" + condition + ") {\n    return " + (JSON.stringify(value)) + ";\n  }");
+            }
+          }
+          return _results;
+        })();
+        return "\nfunction(" + (argNames.join(", ")) + ") {\n  " + (clauses.join(" else ")) + "\n}";
+      };
+      return result;
+    };
+    return generator;
+  };
+
   arraysEqual = function(a1, a2) {
     var arg, i, _i, _len;
     if (a1.length !== a2.length) {
@@ -350,81 +334,7 @@ qc.pick will return a function that randomly chooses one of its arguments.
     }
   };
 
-
-  /**
-  qc.function generates a function that takes args, and returns a random type.
-   */
-
-  qc["function"] = function() {
-    var args, ret, returnGenerator, seed, _i;
-    args = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), returnGenerator = arguments[_i++];
-    seed = qc.random();
-    ret = function(size) {
-      ret.calls = [];
-      return function() {
-        var callArgs, someArgs, value, _j, _k, _len, _ref, _ref1;
-        someArgs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        _ref = ret.calls;
-        for (_j = 0, _len = _ref.length; _j < _len; _j++) {
-          _ref1 = _ref[_j], callArgs = 2 <= _ref1.length ? __slice.call(_ref1, 0, _k = _ref1.length - 1) : (_k = 0, []), value = _ref1[_k++];
-          if (arraysEqual(callArgs, someArgs)) {
-            return value;
-          }
-        }
-        value = returnGenerator(size);
-        ret.calls.push(__slice.call(someArgs).concat([value]));
-        return value;
-      };
-    };
-    ret.stringify = function(fn) {
-      var arg, argNames, calls, clauses, condition, i, pos, value;
-      calls = ret.calls;
-      if (calls.length === 0) {
-        return "function() { return " + (JSON.stringify(returnGenerator(10))) + "; }";
-      }
-      argNames = (function() {
-        var _j, _ref, _results;
-        _results = [];
-        for (i = _j = 0, _ref = calls[0].length - 1; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
-          _results.push(String.fromCharCode(i + 97));
-        }
-        return _results;
-      })();
-      clauses = (function() {
-        var _j, _k, _len, _ref, _results;
-        _results = [];
-        for (pos = _j = 0, _len = calls.length; _j < _len; pos = ++_j) {
-          _ref = calls[pos], args = 2 <= _ref.length ? __slice.call(_ref, 0, _k = _ref.length - 1) : (_k = 0, []), value = _ref[_k++];
-          condition = ((function() {
-            var _l, _len1, _results1;
-            _results1 = [];
-            for (i = _l = 0, _len1 = args.length; _l < _len1; i = ++_l) {
-              arg = args[i];
-              _results1.push("" + argNames[i] + " === " + (JSON.stringify(arg)));
-            }
-            return _results1;
-          })()).join(' && ');
-          if (calls.length === 1) {
-            _results.push("return " + (JSON.stringify(value)) + ";");
-          } else if (pos === calls.length - 1) {
-            _results.push("{\n    return " + (JSON.stringify(value)) + ";\n  }");
-          } else {
-            _results.push("if (" + condition + ") {\n    return " + (JSON.stringify(value)) + ";\n  }");
-          }
-        }
-        return _results;
-      })();
-      return "\nfunction(" + (argNames.join(", ")) + ") {\n  " + (clauses.join(" else ")) + "\n}";
-    };
-    return ret;
-  };
-
 }).call(this);
-
-
-/**
-qc.intUpto will return a random integer from 0 to size.
- */
 
 (function() {
   qc.intUpto = function(size) {
@@ -438,11 +348,6 @@ qc.intUpto will return a random integer from 0 to size.
   qc.ureal.large = function() {
     return qc.random() * Number.MAX_VALUE;
   };
-
-
-  /**
-  qc.float will return a random floating point number from -size^2 to size^2.
-   */
 
   qc.real = function(size) {
     return qc.choose(1, -1) * qc.ureal(size);
@@ -460,11 +365,6 @@ qc.intUpto will return a random integer from 0 to size.
     return Math.floor(qc.random() * Number.MAX_VALUE);
   };
 
-
-  /**
-  qc.int will return a random integer from -size^2 to size^2.
-   */
-
   qc.int = function(size) {
     return qc.choose(1, -1) * qc.intUpto(size);
   };
@@ -480,12 +380,6 @@ qc.intUpto will return a random integer from 0 to size.
   };
 
 }).call(this);
-
-
-/**
-qc.objectLike accepts a template of an object with random generators as values,
-and returns a generator of that form of object.
- */
 
 (function() {
   qc.objectLike = function(template) {
@@ -504,11 +398,6 @@ and returns a generator of that form of object.
     };
   };
 
-
-  /**
-  qc.objectOf generates an object containing the passed type
-   */
-
   qc.objectOf = function(generator) {
     return function(size) {
       var i, result, _i, _ref;
@@ -520,19 +409,9 @@ and returns a generator of that form of object.
     };
   };
 
-
-  /**
-  qc.object generates an object containing random types
-   */
-
   qc.object = qc.objectOf(qc.any);
 
 }).call(this);
-
-
-/**
-qc.char will return a random string with a single chararcter.
- */
 
 (function() {
   var capture, generator, generatorForPattern, handleClass, makeComplimentaryRange, makeRange,
@@ -542,19 +421,9 @@ qc.char will return a random string with a single chararcter.
     return String.fromCharCode(qc.byte());
   };
 
-
-  /**
-  qc.string will generate a string of random charachters.
-   */
-
   qc.string = function(size) {
     return qc.arrayOf(qc.char)(size).join('');
   };
-
-
-  /**
-  qc.string.ascii will generate a string of random ascii charachters.
-   */
 
   qc.string.ascii = function(size) {
     var gen;
@@ -605,18 +474,6 @@ qc.char will return a random string with a single chararcter.
     }
   };
 
-  capture = function(gen, captures, captureLevel) {
-    return function(size) {
-      var value, _name;
-      value = gen(size);
-      if (captures[_name = captureLevel.toString()] == null) {
-        captures[_name] = [];
-      }
-      captures[captureLevel.toString()].push(value);
-      return value;
-    };
-  };
-
   makeRange = function(from, to, caseInsensitive) {
     var charCode, lowerCase, upperCase, _i, _ref, _ref1, _results;
     if (caseInsensitive) {
@@ -655,6 +512,18 @@ qc.char will return a random string with a single chararcter.
       }
     }
     return _results;
+  };
+
+  capture = function(gen, captures, captureLevel) {
+    return function(size) {
+      var value, _name;
+      value = gen(size);
+      if (captures[_name = captureLevel.toString()] == null) {
+        captures[_name] = [];
+      }
+      captures[captureLevel.toString()].push(value);
+      return value;
+    };
   };
 
   handleClass = function(token, captures, captureLevel) {
@@ -725,7 +594,7 @@ qc.char will return a random string with a single chararcter.
     gens = [];
     while (toks.length > 0) {
       token = toks.shift();
-      if (token.match(/[\w\s]/i)) {
+      if (token.match(/[\w\s=]/i)) {
         gens.push(generator.literal(token, caseInsensitive));
       } else if (token === '^') {
         captures.isHookedFromStart = true;
@@ -826,12 +695,6 @@ qc.char will return a random string with a single chararcter.
     return qc.string.concat(gens);
   };
 
-
-  /**
-  Generates a string that would match the regexp passed in.
-  Currently only a limited subset of regexp is supported.
-   */
-
   qc.string.matching = function(pattern) {
     var captures, patternGenerator, toks;
     toks = pattern.source.split('');
@@ -851,11 +714,6 @@ qc.char will return a random string with a single chararcter.
   };
 
 }).call(this);
-
-
-/**
-qc.date will generate a random date
- */
 
 (function() {
   qc.date = qc.constructor(Date, qc.uint.large);

@@ -1,26 +1,33 @@
-###*
-qc.pick will return a function that randomly chooses one of its arguments.
-###
+# Return a function that randomly chooses one of the arguments passed to `qc.pick`.
 qc.pick =  (range...) ->
   range = range[0] if arguments.length ==  1
   -> range[Math.floor(qc.random() * range.length)]
-###*
-qc.choose will randomly choose one of its arguments. If only one argument is passed,
-it is assumed that that argument is an array of possibilities.
-###
+
 qc.choose =  (range...) -> qc.pick(range...)()
 
+# ### Generator combinators
+# These combinator functions are meant to create new generators out of other generators.
 
-###*
-qc.oneOf combines generators into one generator.
-###
+# `qc.oneOf` will choose between all the generators passed to it (accepts also an array of generators)
+# and generate a value from it. For example:
+#
+#     stringOrNumber = qc.oneOf(qc.string, qc.real)
+#     stringOrNumber(size) // "frqw"
+#     stringOrNumber(size) // 5.54
 qc.oneOf =  (generators...) ->
   (size) ->
     qc.choose(generators...)(size)
 
-###*
-qc.except will generate a value, but not any of the normal types
-###
+# `qc.except` will run the generator passed to it as normal, but when it generates
+# one of the `values` passed to it, it will try the generator again to guarantee that
+# the generator will generate a value other then any of the values. So `qc.except(qc.uint, 0)(size)`
+# will generate a natural number, since `qc.uint` it will generate a random positive integer,
+# and if it generates 0, it will try again.
+#
+# This is quite a naive implementation as it will simply try again if the generator
+# does generate one of the values. If the probability of generating one of these
+# values is high, this can really kill performace, so for those cases a custom
+# implementation might be better (e.g. the string generator does this).
 qc.except =  (generator, values...) ->
   anyMatches = (expect) -> return (true for v in values when v is expect).length > 0
   (size) ->
