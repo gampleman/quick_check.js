@@ -12,13 +12,18 @@ module.exports = function (grunt) {
         client: {
           captureConsole: true,
           useIframe: true
-        },
-        background: true
+        }
+
       },
       unit: {
         // singleRun: true,
-        browsers: ['PhantomJS']
+        browsers: ['PhantomJS'],
+        background: true
       },
+      continuous: {
+        singleRun: true,
+        browsers: ['PhantomJS']
+      }
     },
 
     watch: {

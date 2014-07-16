@@ -38,7 +38,7 @@ stringify = (examples) ->
 makeHistogram = (hist, total) ->
   hist = ({label, count} for label, count of hist)
   hist.sort ({count: a}, {count: b}) -> a - b
-  "\n" + hist.map(({label: label, count: count}) -> "#{((count / total) * 100).toFixed(2)}% #{label}").join("\n")
+  "\n" + hist.map(({label, count}) -> "#{((count / total) * 100).toFixed(2)}% #{label}").join("\n")
 
 # `qc.forAll` is a convenience method for executing quick checks, but the return values are
 # ignored. This is useful with seperate expectations:
