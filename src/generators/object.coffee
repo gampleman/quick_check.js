@@ -30,4 +30,4 @@ qc.objectOf =  (generator) ->
     result
 
 # `qc.object` generates an object containing random types
-qc.object = qc.objectOf(qc.any)
+qc.object = (size) -> qc.objectOf(qc.any)(size)

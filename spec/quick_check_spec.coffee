@@ -78,6 +78,10 @@ describe 'qc', ->
         expect(qc.string.matching(/^[a-g\d]+$/)(5)).toMatch(/^[a-g\d]+$/)
         expect(qc.string.matching(/^[^a-g\d]+$/)(5)).toMatch(/^[^a-g\d]+$/)
 
+  describe 'any', ->
+    it 'can be of any type', ->
+      expect((any) -> [any].pop() == any).forAll(qc.any)
+
   it '#odd returns true for odd numbers', ->
     odd = (num) -> num % 2 == 1
     expect((i) -> odd(2 * i + 1)).not.forAll(qc.int)
