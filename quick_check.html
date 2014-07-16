@@ -92,7 +92,7 @@ sorted list with percentages of values that went there.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">makeHistogram</span> = <span class="hljs-params">(hist, total)</span> -&gt;</span>
   hist = ({label, count} <span class="hljs-keyword">for</span> label, count <span class="hljs-keyword">of</span> hist)
   hist.sort <span class="hljs-function"><span class="hljs-params">({count: a}, {count: b})</span> -&gt;</span> a - b
-  <span class="hljs-string">"\n"</span> + hist.map<span class="hljs-function"><span class="hljs-params">(({label: label, count: count}) -&gt; <span class="hljs-string">"<span class="hljs-subst">#{((count / total) * <span class="hljs-number">100</span>).toFixed(<span class="hljs-number">2</span>)}</span>% <span class="hljs-subst">#{label}</span>"</span>)</span>.<span class="hljs-title">join</span><span class="hljs-params">(<span class="hljs-string">"\n"</span>)</span>
+  <span class="hljs-string">"\n"</span> + hist.map<span class="hljs-function"><span class="hljs-params">(({label, count}) -&gt; <span class="hljs-string">"<span class="hljs-subst">#{((count / total) * <span class="hljs-number">100</span>).toFixed(<span class="hljs-number">2</span>)}</span>% <span class="hljs-subst">#{label}</span>"</span>)</span>.<span class="hljs-title">join</span><span class="hljs-params">(<span class="hljs-string">"\n"</span>)</span>
 
 </span></pre></div></div>
             
@@ -852,8 +852,22 @@ This is done recursively for all groups (e.g. anything wrapped with parentheses)
       captures.isHookedFromEnd = <span class="hljs-literal">yes</span>
     <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'.'</span>
       gens.push(generator.dot)
-    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'*'</span>
-      <span class="hljs-keyword">if</span> toks[<span class="hljs-number">0</span>] == <span class="hljs-string">'?'</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> token <span class="hljs-keyword">is</span> <span class="hljs-string">'*'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <p>We implement lazy repeaters as generating shorter strings on average.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> toks[<span class="hljs-number">0</span>] == <span class="hljs-string">'?'</span>
         toks.shift()
         gens.push(generator.repeat(gens.pop(), <span class="hljs-number">0</span>, <span class="hljs-number">10</span>))
       <span class="hljs-keyword">else</span>
@@ -949,30 +963,15 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
         </li>
         
         
-        <li id="section-40">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-40">&#182;</a>
-              </div>
-              <h3 id="misc-generators">Misc generators</h3>
-
-            </div>
-            
-        </li>
-        
-        
         <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
-              <p>qc.date will generate a random date</p>
+              <h3 id="misc-generators">Misc generators</h3>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>qc.date =  qc.constructor Date, qc.uint.large</pre></div></div>
             
         </li>
         
@@ -983,9 +982,11 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
-              <h1 id="jasmine-integration">Jasmine integration</h1>
+              <p>qc.date will generate a random date</p>
 
             </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.date =  qc.constructor Date, qc.uint.large</pre></div></div>
             
         </li>
         
@@ -995,6 +996,34 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <p>qc.any will generate any value</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.any = qc.oneOf(qc.bool, qc.int, qc.real, qc.array, qc.<span class="hljs-reserved">function</span>(qc.any), qc.object, qc.string, qc.date)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-44">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <h1 id="jasmine-integration">Jasmine integration</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-45">&#182;</a>
               </div>
               <p>Integrating into Jasmine is very simple. Feel free to contribute adapters for
 other testing toolkits.</p>

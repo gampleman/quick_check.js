@@ -38,7 +38,7 @@ stringify = (examples) ->
 makeHistogram = (hist, total) ->
   hist = ({label, count} for label, count of hist)
   hist.sort ({count: a}, {count: b}) -> a - b
-  "\n" + hist.map(({label: label, count: count}) -> "#{((count / total) * 100).toFixed(2)}% #{label}").join("\n")
+  "\n" + hist.map(({label, count}) -> "#{((count / total) * 100).toFixed(2)}% #{label}").join("\n")
 
 # `qc.forAll` is a convenience method for executing quick checks, but the return values are
 # ignored. This is useful with seperate expectations:
@@ -382,6 +382,7 @@ generatorForPattern = (toks, caseInsensitive, captures, captureLevel) ->
     else if token is '.'
       gens.push(generator.dot)
     else if token is '*'
+      # We implement lazy repeaters as generating shorter strings on average.
       if toks[0] == '?'
         toks.shift()
         gens.push(generator.repeat(gens.pop(), 0, 10))
@@ -479,6 +480,9 @@ qc.string.matching = (pattern) ->
 
 # qc.date will generate a random date
 qc.date =  qc.constructor Date, qc.uint.large
+
+# qc.any will generate any value
+qc.any = qc.oneOf(qc.bool, qc.int, qc.real, qc.array, qc.function(qc.any), qc.object, qc.string, qc.date)
 
 # # Jasmine integration
 
