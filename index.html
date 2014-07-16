@@ -599,7 +599,7 @@ and returns a generator of that form of object.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.object = qc.objectOf(qc.any)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">object</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.objectOf(qc.any)(size)</pre></div></div>
             
         </li>
         
@@ -1001,7 +1001,8 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.any = qc.oneOf(qc.bool, qc.int, qc.real, qc.array, qc.<span class="hljs-reserved">function</span>(qc.any), qc.object, qc.string, qc.date)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">any</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+  qc.oneOf(qc.bool, qc.int, qc.real, qc.array, qc.<span class="hljs-reserved">function</span>(qc.any), qc.object, qc.string, qc.date)(size)</pre></div></div>
             
         </li>
         
