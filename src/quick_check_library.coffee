@@ -18,6 +18,8 @@ qc = (prop, generators...) ->
       return pass: no, message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
     if result == undefined
       num++; skipped++
+      if skipped > 200
+        return pass: no, message: "Gave up after #{i} (#{skipped} skipped) attempts."
     if typeof result is 'string'
       hist[result] = if hist[result]? then hist[result] + 1 else 1
 

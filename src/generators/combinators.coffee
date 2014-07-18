@@ -18,6 +18,13 @@ qc.oneOf =  (generators...) ->
   (size) ->
     qc.choose(generators...)(size)
 
+# `qc.oneOfByPriority` will choose a generator based on a distribution. This is
+# used for optimizing cases for simpler generators. See `qc.any` for an example.
+qc.oneOfByPriority = (generators...) ->
+  (size) ->
+    gindex = Math.floor((1 - Math.sqrt(qc.random())) * generators.length)
+    generators[gindex](size)
+
 # `qc.except` will run the generator passed to it as normal, but when it generates
 # one of the `values` passed to it, it will try the generator again to guarantee that
 # the generator will generate a value other then any of the values. So `qc.except(qc.uint, 0)(size)`

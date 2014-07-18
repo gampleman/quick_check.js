@@ -42,6 +42,12 @@
       if (result === void 0) {
         num++;
         skipped++;
+        if (skipped > 200) {
+          return {
+            pass: false,
+            message: "Gave up after " + i + " (" + skipped + " skipped) attempts."
+          };
+        }
       }
       if (typeof result === 'string') {
         hist[result] = hist[result] != null ? hist[result] + 1 : 1;
@@ -218,6 +224,16 @@
     generators = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
     return function(size) {
       return qc.choose.apply(qc, generators)(size);
+    };
+  };
+
+  qc.oneOfByPriority = function() {
+    var generators;
+    generators = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    return function(size) {
+      var gindex;
+      gindex = Math.floor((1 - Math.sqrt(qc.random())) * generators.length);
+      return generators[gindex](size);
     };
   };
 
@@ -424,7 +440,12 @@
   };
 
   qc.string = function(size) {
-    return qc.arrayOf(qc.char)(size).join('');
+    var i, s, _i, _ref;
+    s = "";
+    for (i = _i = 0, _ref = qc.intUpto(size); 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+      s += qc.char();
+    }
+    return s;
   };
 
   qc.string.ascii = function(size) {
@@ -720,8 +741,8 @@
 (function() {
   qc.date = qc.constructor(Date, qc.uint.large);
 
-  qc.any = function(size) {
-    return qc.oneOf(qc.bool, qc.int, qc.real, qc.array, qc["function"](qc.any), qc.object, qc.string, qc.date)(size);
-  };
+  qc.any = qc.oneOfByPriority(qc.bool, qc.int, qc.real, (function() {
+    return function() {};
+  }), qc.string, qc.array, qc.object);
 
 }).call(this);

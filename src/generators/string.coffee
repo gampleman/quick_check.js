@@ -4,7 +4,10 @@
 qc.char =  -> String.fromCharCode(qc.byte())
 
 # `qc.string` will generate a string of random charachters.
-qc.string =  (size) -> qc.arrayOf(qc.char)(size).join('')
+qc.string = (size) ->
+  s = ""
+  s += qc.char() for i in [0..qc.intUpto(size)]
+  s
 
 # `qc.string.ascii` will generate a string of random ascii charachters.
 qc.string.ascii = (size) ->

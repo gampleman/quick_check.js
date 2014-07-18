@@ -3,6 +3,16 @@
 # qc.date will generate a random date
 qc.date =  qc.constructor Date, qc.uint.large
 
-# qc.any will generate any value
-qc.any = (size) ->
-  qc.oneOf(qc.bool, qc.int, qc.real, qc.array, qc.function(qc.any), qc.object, qc.string, qc.date)(size)
+# qc.any will generate a value of any type. For performance reasons there is a bias
+# towards simpler types with the following approx. distribution:
+#
+# Probability | Type
+# ----------|-----------
+#        4% | `object`
+#        8% | `array`
+#       13% | `string`
+#       14% | `function`
+#       16% | `real`
+#       20% | `integer`
+#       25% | `boolean`
+qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (-> ->), qc.string, qc.array, qc.object
