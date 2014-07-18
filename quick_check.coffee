@@ -18,6 +18,8 @@ qc = (prop, generators...) ->
       return pass: no, message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
     if result == undefined
       num++; skipped++
+      if skipped > 200
+        return pass: no, message: "Gave up after #{i} (#{skipped} skipped) attempts."
     if typeof result is 'string'
       hist[result] = if hist[result]? then hist[result] + 1 else 1
 
@@ -105,6 +107,13 @@ qc.choose =  (range...) -> qc.pick(range...)()
 qc.oneOf =  (generators...) ->
   (size) ->
     qc.choose(generators...)(size)
+
+# `qc.oneOfByPriority` will choose a generator based on a distribution. This is
+# used for optimizing cases for simpler generators. See `qc.any` for an example.
+qc.oneOfByPriority = (generators...) ->
+  (size) ->
+    gindex = Math.floor((1 - Math.sqrt(qc.random())) * generators.length)
+    generators[gindex](size)
 
 # `qc.except` will run the generator passed to it as normal, but when it generates
 # one of the `values` passed to it, it will try the generator again to guarantee that
@@ -254,7 +263,10 @@ qc.object = (size) -> qc.objectOf(qc.any)(size)
 qc.char =  -> String.fromCharCode(qc.byte())
 
 # `qc.string` will generate a string of random charachters.
-qc.string =  (size) -> qc.arrayOf(qc.char)(size).join('')
+qc.string = (size) ->
+  s = ""
+  s += qc.char() for i in [0..qc.intUpto(size)]
+  s
 
 # `qc.string.ascii` will generate a string of random ascii charachters.
 qc.string.ascii = (size) ->
@@ -481,9 +493,19 @@ qc.string.matching = (pattern) ->
 # qc.date will generate a random date
 qc.date =  qc.constructor Date, qc.uint.large
 
-# qc.any will generate any value
-qc.any = (size) ->
-  qc.oneOf(qc.bool, qc.int, qc.real, qc.array, qc.function(qc.any), qc.object, qc.string, qc.date)(size)
+# qc.any will generate a value of any type. For performance reasons there is a bias
+# towards simpler types with the following approx. distribution:
+#
+# Probability | Type
+# ----------|-----------
+#        4% | `object`
+#        8% | `array`
+#       13% | `string`
+#       14% | `function`
+#       16% | `real`
+#       20% | `integer`
+#       25% | `boolean`
+qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (-> ->), qc.string, qc.array, qc.object
 
 # # Jasmine integration
 
