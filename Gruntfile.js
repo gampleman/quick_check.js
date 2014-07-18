@@ -82,6 +82,7 @@ module.exports = function (grunt) {
   grunt.registerTask('dist', ['coffee', 'concat:dist']);
   grunt.registerTask('docs', ['concat:docs', 'docco:source']);
   grunt.registerTask('release', ['dist', 'docs', 'concat:docs2', 'gh-pages', 'clean']);
+  grunt.registerTask('ci', ['coffee', 'karma:continuous', 'clean']);
 
   grunt.initConfig(initConfig);
 }
