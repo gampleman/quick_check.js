@@ -27,10 +27,6 @@ class HashMap
     delete this[key]
     value
 
-
-
-
-
 # 2. Generators
 hashMaps = (size) ->
   hm = new HashMap()
