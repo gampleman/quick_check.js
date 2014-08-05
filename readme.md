@@ -124,6 +124,10 @@ qc.any generates a random value of any of the basic types (except functions).
 
 qc.date generates a random date.
 
+Maintained By
+-------------
+[Jakub Hampl](https://github.com/gampleman) - http://gampleman.eu
+
 # License
 
 The MIT License (MIT)
