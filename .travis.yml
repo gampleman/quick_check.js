@@ -7,6 +7,7 @@ deploy:
   on:
     tags: true
     repo: gampleman/quick_check.js
+    branch: master
   api_key:
     secure: QrTeXH1Q2koCjDy9uJ3ncqISeua7Xa/1gEWooIPAAKYxqV0hiu7zWqwwgCtN8YFZ5WaYDtVrj98I/0Rgs3rG0PCe08oMpOlMjm7sEnqOXqX5QSYtH2YxWNX0s7fsCI2KGfv5nYnT08bQYn8Itzx2mqaDkoR4VyOx4Zg7fxP5opM=
   after_deploy: node_modules/.bin/grunt deploy
