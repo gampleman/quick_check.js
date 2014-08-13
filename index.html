@@ -45,18 +45,18 @@ if a string is returned we classify the tests based on the returned string.</p>
     result = prop(examples...)
     <span class="hljs-keyword">if</span> result == <span class="hljs-literal">false</span>
       skippedString = <span class="hljs-keyword">if</span> skipped &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-string">" (<span class="hljs-subst">#{skipped}</span> skipped)"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
-      <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Falsified after <span class="hljs-subst">#{i}</span> attempts<span class="hljs-subst">#{skippedString}</span>. Counter-example: <span class="hljs-subst">#{stringify(examples, generators)}</span>"</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>, <span class="hljs-attribute">examples</span>: examples, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Falsified after <span class="hljs-subst">#{i}</span> attempts<span class="hljs-subst">#{skippedString}</span>. Counter-example: <span class="hljs-subst">#{stringify(examples, generators)}</span>"</span>
     <span class="hljs-keyword">if</span> result == <span class="hljs-literal">undefined</span>
       num++; skipped++
       <span class="hljs-keyword">if</span> skipped &gt; <span class="hljs-number">200</span>
-        <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Gave up after <span class="hljs-subst">#{i}</span> (<span class="hljs-subst">#{skipped}</span> skipped) attempts."</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>, <span class="hljs-attribute">examples</span>: examples, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Gave up after <span class="hljs-subst">#{i}</span> (<span class="hljs-subst">#{skipped}</span> skipped) attempts."</span>
     <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> result <span class="hljs-keyword">is</span> <span class="hljs-string">'string'</span>
       hist[result] = <span class="hljs-keyword">if</span> hist[result]? <span class="hljs-keyword">then</span> hist[result] + <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
 
   skippedString = <span class="hljs-keyword">if</span> skipped &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-string">" (<span class="hljs-subst">#{skipped}</span> skipped)"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
   histString = makeHistogram hist, num
 
-  <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">yes</span>, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Passed <span class="hljs-subst">#{num}</span> tests<span class="hljs-subst">#{skippedString}</span>.<span class="hljs-subst">#{histString}</span>"</span></pre></div></div>
+  <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">yes</span>, <span class="hljs-attribute">examples</span>: examples, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Passed <span class="hljs-subst">#{num}</span> tests<span class="hljs-subst">#{skippedString}</span>.<span class="hljs-subst">#{histString}</span>"</span></pre></div></div>
             
         </li>
         
@@ -1093,10 +1093,11 @@ other testing toolkits.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>beforeEach<span class="hljs-function"> -&gt;</span>
-  jasmine.addMatchers
-    <span class="hljs-attribute">forAll</span>:<span class="hljs-function"> -&gt;</span>
-      <span class="hljs-attribute">compare</span>: qc</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> <span class="hljs-property">@jasmine</span>?
+  beforeEach<span class="hljs-function"> -&gt;</span>
+    jasmine.addMatchers
+      <span class="hljs-attribute">forAll</span>:<span class="hljs-function"> -&gt;</span>
+        <span class="hljs-attribute">compare</span>: qc</pre></div></div>
             
         </li>
         
