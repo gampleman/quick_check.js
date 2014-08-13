@@ -1,3 +1,15 @@
 language: node_js
 node_js:
-  - 0.10
+- '0.10'
+deploy:
+  provider: npm
+  email: jakub.hampl@rightscale.com
+  on:
+    tags: true
+    repo: gampleman/quick_check.js
+  api_key:
+    secure: QrTeXH1Q2koCjDy9uJ3ncqISeua7Xa/1gEWooIPAAKYxqV0hiu7zWqwwgCtN8YFZ5WaYDtVrj98I/0Rgs3rG0PCe08oMpOlMjm7sEnqOXqX5QSYtH2YxWNX0s7fsCI2KGfv5nYnT08bQYn8Itzx2mqaDkoR4VyOx4Zg7fxP5opM=
+  after_deploy: node_modules/.bin/grunt deploy
+env:
+  global:
+    secure: JANv6IDJESWst8TflbgAn0YC0hNma0vj0Gf9/E9gjXg+JXFcJnhxtT1T6bGYp6elXd5I5KtI2IPGaQJP71HuqxmnEsd86MIpTclmtRDRjwfx7UoTrRrPE43YN3W9c6xsQRGN/teZQJ4c6SFCFQKtDlnK4UThkkgtBcD1WkBxlgw=

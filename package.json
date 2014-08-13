@@ -1,32 +1,38 @@
 {
-  "name": "quick_check.js",
-  "description": "QuickCheck for Jasmine",
+  "name": "quick_check",
+  "description": "QuickCheck for JavaScript",
+  "keywords": ["QuickCheck", "testing", "property testing", "functional programming"],
+  "bugs": {
+    "url": "https://githug.com/gampleman/quick_check.js/issues"
+  },
+  "license": "MIT",
   "homepage": "https://github.com/gampleman/quick_check.js",
-  "author": "Jakub Hampl",
+  "author": "Jakub Hampl (http://gampleman.eu)",
+  "files": ["dist"],
   "devDependencies": {
-    "jasmine-reporters": "~0.2.1",
+    "docco": "~0.6.3",
     "grunt": "~0.4.2",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-coffee": "~0.10.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.4.0",
     "grunt-contrib-watch": "~0.5.3",
+    "grunt-docco": "~0.3.3",
+    "grunt-gh-pages": "~0.9.1",
     "grunt-karma": "~0.8.0",
+    "jasmine-reporters": "~0.2.1",
     "karma": "~0.12.0",
     "karma-jasmine": "~0.2.2",
     "karma-phantomjs-launcher": "~0.1.2",
-    "grunt-contrib-uglify": "~0.4.0",
-    "grunt-contrib-concat": "~0.3.0",
     "load-grunt-tasks": "~0.4.0",
-    "phantomjs": "~1.9",
-    "grunt-contrib-coffee": "~0.10.1",
-    "docco": "~0.6.3",
-    "grunt-docco": "~0.3.3",
-    "grunt-gh-pages": "~0.9.1",
-    "grunt-contrib-clean": "~0.5.0",
-    "grunt-cli": "~0.1.13"
+    "phantomjs": "~1.9"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/gampleman/quick_check.js.git"
   },
-  "version": "0.1.1",
+  "version": "0.2.0",
   "scripts": {
     "test": "node_modules/.bin/grunt ci"
   }

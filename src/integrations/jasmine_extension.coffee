@@ -2,7 +2,8 @@
 
 # Integrating into Jasmine is very simple. Feel free to contribute adapters for
 # other testing toolkits.
-beforeEach ->
-  jasmine.addMatchers
-    forAll: ->
-      compare: qc
+if @jasmine?
+  beforeEach ->
+    jasmine.addMatchers
+      forAll: ->
+        compare: qc

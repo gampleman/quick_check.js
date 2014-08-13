@@ -1,17 +1,4 @@
 (function() {
-  beforeEach(function() {
-    return jasmine.addMatchers({
-      forAll: function() {
-        return {
-          compare: qc
-        };
-      }
-    });
-  });
-
-}).call(this);
-
-(function() {
   var makeHistogram, qc, stringify,
     __slice = [].slice;
 
@@ -36,6 +23,7 @@
         skippedString = skipped > 0 ? " (" + skipped + " skipped)" : "";
         return {
           pass: false,
+          examples: examples,
           message: "Falsified after " + i + " attempts" + skippedString + ". Counter-example: " + (stringify(examples, generators))
         };
       }
@@ -45,6 +33,7 @@
         if (skipped > 200) {
           return {
             pass: false,
+            examples: examples,
             message: "Gave up after " + i + " (" + skipped + " skipped) attempts."
           };
         }
@@ -57,6 +46,7 @@
     histString = makeHistogram(hist, num);
     return {
       pass: true,
+      examples: examples,
       message: "Passed " + num + " tests" + skippedString + "." + histString
     };
   };
@@ -744,5 +734,34 @@
   qc.any = qc.oneOfByPriority(qc.bool, qc.int, qc.real, (function() {
     return function() {};
   }), qc.string, qc.array, qc.object);
+
+}).call(this);
+
+(function() {
+  if (this.jasmine != null) {
+    beforeEach(function() {
+      return jasmine.addMatchers({
+        forAll: function() {
+          return {
+            compare: qc
+          };
+        }
+      });
+    });
+  }
+
+}).call(this);
+
+(function() {
+  var __slice = [].slice;
+
+  if (this.QUnit != null) {
+    QUnit.assert.forEach = function() {
+      var examples, generators, message, pass, property, _ref;
+      property = arguments[0], generators = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      _ref = qc.apply(null, [property].concat(__slice.call(generators))), pass = _ref.pass, examples = _ref.examples, message = _ref.message;
+      return QUnit.push(pass, property, examples, message);
+    };
+  }
 
 }).call(this);

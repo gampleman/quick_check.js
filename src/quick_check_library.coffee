@@ -15,18 +15,18 @@ qc = (prop, generators...) ->
     result = prop(examples...)
     if result == false
       skippedString = if skipped > 0 then " (#{skipped} skipped)" else ""
-      return pass: no, message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+      return pass: no, examples: examples, message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
     if result == undefined
       num++; skipped++
       if skipped > 200
-        return pass: no, message: "Gave up after #{i} (#{skipped} skipped) attempts."
+        return pass: no, examples: examples, message: "Gave up after #{i} (#{skipped} skipped) attempts."
     if typeof result is 'string'
       hist[result] = if hist[result]? then hist[result] + 1 else 1
 
   skippedString = if skipped > 0 then " (#{skipped} skipped)" else ""
   histString = makeHistogram hist, num
 
-  return pass: yes, message: "Passed #{num} tests#{skippedString}.#{histString}"
+  return pass: yes, examples: examples, message: "Passed #{num} tests#{skippedString}.#{histString}"
 
 # When an example fails, we need to convert it to a string to show the user the
 # failing test case. Currently if it is a function that failed, we call `toString`
