@@ -9,6 +9,7 @@
   "homepage": "https://github.com/gampleman/quick_check.js",
   "author": "Jakub Hampl (http://gampleman.eu)",
   "files": ["dist"],
+  "main": "dist/jasmine-quick-check.js",
   "devDependencies": {
     "docco": "~0.6.3",
     "grunt": "~0.4.2",
@@ -32,7 +33,7 @@
     "type": "git",
     "url": "git://github.com/gampleman/quick_check.js.git"
   },
-  "version": "0.2.1",
+  "version": "0.2.2",
   "scripts": {
     "test": "node_modules/.bin/grunt ci"
   }
