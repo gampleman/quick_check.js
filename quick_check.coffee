@@ -59,6 +59,7 @@ qc.random = Math.random
 
 # We make this globally available.
 @qc = qc
+module.exports = qc if module?
 
 # # Generators
 # This library bundle a number of simple generators that help for testing a lot of
