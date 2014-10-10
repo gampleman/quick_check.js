@@ -34,7 +34,15 @@ the test (in this case -4). (Why? Because modulus operator in JavaScript is botc
 QuickCheck will stop after 100 generated test cases and assume that your code works.
 
 For more information [check out my talk](https://vimeo.com/98737599) or read the
-[annotated source code](http://code.gampleman.eu/quick_check.js/).
+[annotated source code](http://code.gampleman.eu/quick_check.js/) or the
+[introductory blog post](http://eng.rightscale.com/2014/07/18/quick-check-js.html).
+
+# Installing
+
+Karma + Jasmine combo should be supported easily. Simply `npm install quick-check --save-dev`,
+then add `'node_modules/quick_check/dist/jasmine-quick-check.js'` to your `files` config.
+
+QUnit should also work, but isn't being currently tested.
 
 # Generators
 

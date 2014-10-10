@@ -115,8 +115,10 @@ qc.forAll = function() {
 
 qc.random = Math.random;
 
-if (typeof this !== "undefined" && this !== null) {
+if (typeof this !== "undefined" && this !== null ? this.qc : void 0) {
   this.qc = qc;
+} else if (typeof window !== "undefined" && window !== null) {
+  window.qc = qc;
 }
 
 if (typeof module !== "undefined" && module !== null) {
@@ -718,7 +720,7 @@ qc.any = qc.oneOfByPriority(qc.bool, qc.int, qc.real, (function() {
   return function() {};
 }), qc.string, qc.array, qc.object);
 
-if (this.jasmine != null) {
+if (typeof jasmine !== "undefined" && jasmine !== null) {
   beforeEach(function() {
     return jasmine.addMatchers({
       forAll: function() {
@@ -732,7 +734,7 @@ if (this.jasmine != null) {
 
 var __slice = [].slice;
 
-if (this.QUnit != null) {
+if (typeof QUnit !== "undefined" && QUnit !== null) {
   QUnit.assert.forEach = function() {
     var examples, generators, message, pass, property, _ref;
     property = arguments[0], generators = 2 <= arguments.length ? __slice.call(arguments, 1) : [];

@@ -1,6 +1,5 @@
 # # QUnit integration
 
-if @QUnit?
-  QUnit.assert.forEach = (property, generators...) ->
-    {pass, examples, message} = qc(property, generators...)
-    QUnit.push(pass, property, examples, message)
+QUnit?.assert.forEach = (property, generators...) ->
+  {pass, examples, message} = qc(property, generators...)
+  QUnit.push(pass, property, examples, message)
