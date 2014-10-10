@@ -115,7 +115,9 @@ qc.forAll = function() {
 
 qc.random = Math.random;
 
-this.qc = qc;
+if (typeof this !== "undefined" && this !== null) {
+  this.qc = qc;
+}
 
 if (typeof module !== "undefined" && module !== null) {
   module.exports = qc;

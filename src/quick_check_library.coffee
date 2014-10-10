@@ -58,5 +58,5 @@ qc.forAll = (generators..., prop) ->
 qc.random = Math.random
 
 # We make this globally available.
-@qc = qc
+@?.qc = qc
 module.exports = qc if module?
