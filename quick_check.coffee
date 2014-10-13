@@ -58,7 +58,11 @@ qc.forAll = (generators..., prop) ->
 qc.random = Math.random
 
 # We make this globally available.
-@qc = qc
+if @?
+  @qc = qc
+else if window?
+  window.qc = qc
+
 module.exports = qc if module?
 
 # # Generators
@@ -154,6 +158,28 @@ qc.int.large = -> qc.choose(1, -1) * qc.uint.large()
 qc.int.between = (min, max) ->
   (size) ->
     min + qc.intUpto(Math.min(max + 1 - min, size))
+
+qc.natural = (size) -> qc.intUpto(size * size) + 1
+qc.natural.large = -> Math.ceil(qc.random() * Number.MAX_VALUE)
+
+# Range generators will generate an array of two numbers where the second is
+# guaranteed to be larger than the first. i.e.
+#
+#    expect(function(r) { return r[0] < r[1]}).forAll(qc.range());
+#    expect(function(r) { return r[0] <= r[1]}).forAll(qc.range.inclusive(qc.real));
+#    expect(function(r) { return r[0] < r[1] && r[0] >= 0}).forAll(qc.range(qc.ureal));
+#    expect(function(r) { return r[0] < r[1] && r[0] > 0}).forAll(qc.range(qc.natural));
+qc.range = (gen = qc.real) ->
+  (size) ->
+    start = gen(size)
+    end = start + Math.abs(gen(size))
+    end += 1 if start is end
+    [start, end]
+
+qc.range.inclusive = (gen = qc.real) ->
+  (size) ->
+    start = gen(size)
+    [start, start + Math.abs(gen(size))]
 
 # ### Array generators
 
@@ -512,7 +538,7 @@ qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (-> ->), qc.string, qc.arr
 
 # Integrating into Jasmine is very simple. Feel free to contribute adapters for
 # other testing toolkits.
-if @jasmine?
+if jasmine?
   beforeEach ->
     jasmine.addMatchers
       forAll: ->
