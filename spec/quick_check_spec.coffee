@@ -36,6 +36,12 @@ describe 'qc', ->
     qc.forAll qc.int, (i) ->
       expect((i + i) % 2).toBe(0)
 
+  it 'can generate ranges', ->
+    expect(([min, max]) -> min < max).forAll(qc.range())
+    expect(([min, max]) -> min <= max).forAll(qc.range.inclusive(qc.real))
+    expect(([min, max]) -> 0 <= min < max).forAll(qc.range(qc.ureal))
+    expect(([min, max]) -> 0 < min < max).forAll(qc.range(qc.natural))
+
   describe 'string', ->
     it 'generates a string', ->
       expect((i) -> typeof qc.string(i) is 'string').forAll(qc.uint)

@@ -71,6 +71,12 @@ qc.int will return a random integer.
 
 qc.int.between(min, max) generates a random number between min and max.
 
+`qc.range([numberGenerator])` generates an array of 2 numbers, where the second
+is greater than the first.
+
+`qc.range.inclusive([numberGenerator])` generates an array of 2 numbers, where the
+second is greater or equal to the first.
+
 ### strings
 
 qc.char will return a random string with a single chararcter.

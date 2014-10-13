@@ -33,7 +33,7 @@
     "type": "git",
     "url": "git://github.com/gampleman/quick_check.js.git"
   },
-  "version": "0.2.3",
+  "version": "0.3.0",
   "scripts": {
     "test": "node_modules/.bin/grunt ci"
   }

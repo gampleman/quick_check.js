@@ -58,7 +58,7 @@ qc.forAll = (generators..., prop) ->
 qc.random = Math.random
 
 # We make this globally available.
-if @?.qc
+if @?
   @qc = qc
 else if window?
   window.qc = qc
