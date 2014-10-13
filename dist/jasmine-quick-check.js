@@ -115,7 +115,7 @@ qc.forAll = function() {
 
 qc.random = Math.random;
 
-if (typeof this !== "undefined" && this !== null ? this.qc : void 0) {
+if (typeof this !== "undefined" && this !== null) {
   this.qc = qc;
 } else if (typeof window !== "undefined" && window !== null) {
   window.qc = qc;
@@ -376,6 +376,40 @@ qc.int.large = function() {
 qc.int.between = function(min, max) {
   return function(size) {
     return min + qc.intUpto(Math.min(max + 1 - min, size));
+  };
+};
+
+qc.natural = function(size) {
+  return qc.intUpto(size * size) + 1;
+};
+
+qc.natural.large = function() {
+  return Math.ceil(qc.random() * Number.MAX_VALUE);
+};
+
+qc.range = function(gen) {
+  if (gen == null) {
+    gen = qc.real;
+  }
+  return function(size) {
+    var end, start;
+    start = gen(size);
+    end = start + Math.abs(gen(size));
+    if (start === end) {
+      end += 1;
+    }
+    return [start, end];
+  };
+};
+
+qc.range.inclusive = function(gen) {
+  if (gen == null) {
+    gen = qc.real;
+  }
+  return function(size) {
+    var start;
+    start = gen(size);
+    return [start, start + Math.abs(gen(size))];
   };
 };
 
