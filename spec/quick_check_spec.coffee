@@ -88,6 +88,24 @@ describe 'qc', ->
     it 'can be of any type', ->
       expect((any) -> [any].pop() == any).forAll(qc.any)
 
+  describe 'number', ->
+    describe 'dice', ->
+      it 'can parse additions of constants', ->
+        expect(qc.dice('3 + 5')()).toBe 8
+      it 'can create a single die', ->
+        cast = qc.dice('d4')()
+        expect(cast).toBeLessThan 5
+        expect(cast).toBeGreaterThan 0
+      it 'can create a two dies', ->
+        cast = qc.dice('d3 + d5')()
+        expect(cast).toBeLessThan 9
+        expect(cast).toBeGreaterThan 1
+      it 'can create a multiple dies', ->
+        cast = qc.dice('5d3')()
+        expect(cast).toBeLessThan 16
+        expect(cast).toBeGreaterThan 4
+
+
   it '#odd returns true for odd numbers', ->
     odd = (num) -> num % 2 == 1
     expect((i) -> odd(2 * i + 1)).not.forAll(qc.int)

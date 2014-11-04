@@ -41,3 +41,26 @@ qc.range.inclusive = (gen = qc.real) ->
   (size) ->
     start = gen(size)
     [start, start + Math.abs(gen(size))]
+
+# The dice generator takes a D&D style dice string and transforms it into a random
+# number generator. This can serve as a very quick method how to quickly approximate
+# distributions.
+#
+#    qc.dice('d3') == -> Math.ceil(qc.random() * 3)
+#    qc.dice('d2 + d4 + 3') == ->
+#      Math.ceil(qc.random() * 2) + Math.ceil(qc.random() * 4) + 3
+#    qc.dice('2d6') == -> Math.ceil(qc.random() * 6) + Math.ceil(qc.random() * 6)
+qc.dice = (config) ->
+  new Function (config.split(/\s*\+\s*/).reduce (code, arg) ->
+    if match = arg.match(/(\d*)d(\d+)/)
+      num = parseInt(match[1], 10) or 1
+      max = parseInt match[2], 10
+      if num < 5
+        str = ''
+        str += " + Math.ceil(qc.random() * #{max})" for i in [1..num]
+        code + str
+      else
+        code + " + (function() { var sum = 0; for (var i = 0; i < #{num}; i++) { sum += Math.ceil(qc.random() * #{max});} return sum; })()"
+    else
+      code + " + #{parseInt(arg)}"
+  , 'return ') + ';'
