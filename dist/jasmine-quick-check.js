@@ -795,7 +795,7 @@ qc.any = qc.oneOfByPriority(qc.bool, qc.int, qc.real, (function() {
 
 qc.any.simple = qc.oneOf(qc.bool, qc.int, qc.real, qc.string, qc.pick(void 0, null));
 
-qc.any.simple = qc.oneOf(qc.bool, qc.int, qc.real, qc.string, qc.pick(void 0, null), qc.array, qc.object);
+qc.any.datatype = qc.oneOf(qc.bool, qc.int, qc.real, qc.string, qc.pick(void 0, null), qc.array, qc.object);
 
 qc.color = qc.string.matching(/^\#([A-F\d]{6}|[A-F\d]{3})$/i);
 
