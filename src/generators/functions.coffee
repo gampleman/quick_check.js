@@ -55,3 +55,39 @@ arraysEqual = (a1, a2) ->
     if arg != a2[i]
       return false
     return true
+
+# A procedure is a function composed of discrete operations that has side effects.
+#
+# As an example, we give a procedure to draw a random image into the canvas
+#
+#     drawCanvas = qc.procedure () ->
+#       t1 = qc.intUpto @w
+#       t2 = qc.intUpto @h
+#       @ctx.lineTo t1, t2
+#     , () ->
+#       @ctx.fillStyle = qc.color(@size)
+#       @ctx.fill()
+#     , () ->
+#       @ctx.strokeStyle = qc.color(@size)
+#       @ctx.stroke()
+#     , () ->
+#       @ctx.closePath()
+#     , () ->
+#       t1 = qc.intUpto @w
+#       t2 = qc.intUpto @h
+#       @ctx.moveTo @w, @h
+#
+#     randomPNGDataURL = (size) ->
+#       canvas = document.createElement('canvas')
+#       canvas.width = w = 4 * qc.intUpto size
+#       canvas.height = h = 4 * qc.intUpto size
+#       drawCanvas(size)({ctx: canvas.getContext('2d'), w, h})
+#       canvas.toDataURL()
+qc.procedure = (steps...) ->
+  (size) ->
+    execution = qc.arrayOf(qc.pick steps)(size)
+    (globals) ->
+      globals.size = size
+      execution.reduce (prevVals, fn) ->
+        fn.apply(globals, prevVals)
+      , []

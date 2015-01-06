@@ -26,10 +26,10 @@ qc.natural.large = -> Math.ceil(qc.random() * Number.MAX_VALUE)
 # Range generators will generate an array of two numbers where the second is
 # guaranteed to be larger than the first. i.e.
 #
-#    expect(function(r) { return r[0] < r[1]}).forAll(qc.range());
-#    expect(function(r) { return r[0] <= r[1]}).forAll(qc.range.inclusive(qc.real));
-#    expect(function(r) { return r[0] < r[1] && r[0] >= 0}).forAll(qc.range(qc.ureal));
-#    expect(function(r) { return r[0] < r[1] && r[0] > 0}).forAll(qc.range(qc.natural));
+#     expect(([min, max]) -> min < max).forAll(qc.range())
+#     expect(([min, max]) -> min <= max).forAll(qc.range.inclusive(qc.real))
+#     expect(([min, max]) -> 0 <= min < max).forAll(qc.range(qc.ureal))
+#     expect(([min, max]) -> 0 < min < max).forAll(qc.range(qc.natural))
 qc.range = (gen = qc.real) ->
   (size) ->
     start = gen(size)
@@ -46,10 +46,11 @@ qc.range.inclusive = (gen = qc.real) ->
 # number generator. This can serve as a very quick method how to quickly approximate
 # distributions.
 #
-#    qc.dice('d3') == -> Math.ceil(qc.random() * 3)
-#    qc.dice('d2 + d4 + 3') == ->
-#      Math.ceil(qc.random() * 2) + Math.ceil(qc.random() * 4) + 3
-#    qc.dice('2d6') == -> Math.ceil(qc.random() * 6) + Math.ceil(qc.random() * 6)
+#     qc.dice('d3') == -> Math.ceil(qc.random() * 3)
+#     qc.dice('d2 + d4 + 3') == ->
+#       Math.ceil(qc.random() * 2) + Math.ceil(qc.random() * 4) + 3
+#     qc.dice('2d6') == ->
+#       Math.ceil(qc.random() * 6) + Math.ceil(qc.random() * 6)
 qc.dice = (config) ->
   new Function (config.split(/\s*\+\s*/).reduce (code, arg) ->
     if match = arg.match(/(\d*)d(\d+)/)
@@ -59,8 +60,14 @@ qc.dice = (config) ->
         str = ''
         str += " + Math.ceil(qc.random() * #{max})" for i in [1..num]
         code + str
-      else
-        code + " + (function() { var sum = 0; for (var i = 0; i < #{num}; i++) { sum += Math.ceil(qc.random() * #{max});} return sum; })()"
+      else # we do not want to inline this loop
+        code + " + (function() {
+          var sum = 0;
+          for (var i = 0; i < #{num}; i++) {
+            sum += Math.ceil(qc.random() * #{max});
+          }
+          return sum;
+        })()"
     else
       code + " + #{parseInt(arg)}"
   , 'return ') + ';'

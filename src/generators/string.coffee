@@ -210,8 +210,7 @@ generatorForPattern = (toks, caseInsensitive, captures, captureLevel) ->
       else
         gens.push(capture(generatorForPattern(toks, caseInsensitive, captures, captureLevel + 1), captures, captureLevel))
     else
-      console.log "Usuported characher: '#{token}'"
-      throw "Usuported characher: '#{token}'"
+      gens.push(-> token)
   qc.string.concat(gens)
 
 qc.string.matching = (pattern) ->

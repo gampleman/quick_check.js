@@ -337,6 +337,21 @@ arraysEqual = function(a1, a2) {
   }
 };
 
+qc.procedure = function() {
+  var steps;
+  steps = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+  return function(size) {
+    var execution;
+    execution = qc.arrayOf(qc.pick(steps))(size);
+    return function(globals) {
+      globals.size = size;
+      return execution.reduce(function(prevVals, fn) {
+        return fn.apply(globals, prevVals);
+      }, []);
+    };
+  };
+};
+
 qc.intUpto = function(size) {
   return Math.floor(qc.random() * size);
 };
@@ -411,6 +426,27 @@ qc.range.inclusive = function(gen) {
     start = gen(size);
     return [start, start + Math.abs(gen(size))];
   };
+};
+
+qc.dice = function(config) {
+  return new Function((config.split(/\s*\+\s*/).reduce(function(code, arg) {
+    var i, match, max, num, str, _i;
+    if (match = arg.match(/(\d*)d(\d+)/)) {
+      num = parseInt(match[1], 10) || 1;
+      max = parseInt(match[2], 10);
+      if (num < 5) {
+        str = '';
+        for (i = _i = 1; 1 <= num ? _i <= num : _i >= num; i = 1 <= num ? ++_i : --_i) {
+          str += " + Math.ceil(qc.random() * " + max + ")";
+        }
+        return code + str;
+      } else {
+        return code + (" + (function() { var sum = 0; for (var i = 0; i < " + num + "; i++) { sum += Math.ceil(qc.random() * " + max + "); } return sum; })()");
+      }
+    } else {
+      return code + (" + " + (parseInt(arg)));
+    }
+  }, 'return ')) + ';');
 };
 
 qc.objectLike = function(template) {
@@ -723,8 +759,9 @@ generatorForPattern = function(toks, caseInsensitive, captures, captureLevel) {
         gens.push(capture(generatorForPattern(toks, caseInsensitive, captures, captureLevel + 1), captures, captureLevel));
       }
     } else {
-      console.log("Usuported characher: '" + token + "'");
-      throw "Usuported characher: '" + token + "'";
+      gens.push(function() {
+        return token;
+      });
     }
   }
   return qc.string.concat(gens);
@@ -752,7 +789,25 @@ qc.date = qc.constructor(Date, qc.uint.large);
 
 qc.any = qc.oneOfByPriority(qc.bool, qc.int, qc.real, (function() {
   return function() {};
+}), (function() {
+  return void 0;
 }), qc.string, qc.array, qc.object);
+
+qc.any.simple = qc.oneOf(qc.bool, qc.int, qc.real, qc.string, qc.pick(void 0, null));
+
+qc.any.simple = qc.oneOf(qc.bool, qc.int, qc.real, qc.string, qc.pick(void 0, null), qc.array, qc.object);
+
+qc.color = qc.string.matching(/^\#([A-F\d]{6}|[A-F\d]{3})$/i);
+
+qc.location = function() {
+  var rad2deg, x, y;
+  rad2deg = function(n) {
+    return 360 * n / (2 * Math.PI);
+  };
+  x = qc.random() * 2 * Math.PI - Math.PI;
+  y = Math.PI / 2 - Math.acos(qc.random() * 2 - 1);
+  return [rad2deg(y), rad2deg(x)];
+};
 
 if (typeof jasmine !== "undefined" && jasmine !== null) {
   beforeEach(function() {

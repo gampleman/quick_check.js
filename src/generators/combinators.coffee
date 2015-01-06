@@ -12,8 +12,8 @@ qc.choose =  (range...) -> qc.pick(range...)()
 # and generate a value from it. For example:
 #
 #     stringOrNumber = qc.oneOf(qc.string, qc.real)
-#     stringOrNumber(size) // "frqw"
-#     stringOrNumber(size) // 5.54
+#     stringOrNumber(size) # "frqw"
+#     stringOrNumber(size) # 5.54
 qc.oneOf =  (generators...) ->
   (size) ->
     qc.choose(generators...)(size)

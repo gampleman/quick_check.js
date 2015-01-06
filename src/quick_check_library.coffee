@@ -15,7 +15,11 @@ qc = (prop, generators...) ->
     result = prop(examples...)
     if result == false
       skippedString = if skipped > 0 then " (#{skipped} skipped)" else ""
-      return pass: no, examples: examples, message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+      return {
+        pass: no,
+        examples: examples,
+        message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+      }
     if result == undefined
       num++; skipped++
       if skipped > 200

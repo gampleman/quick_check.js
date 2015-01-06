@@ -24,7 +24,6 @@ describe 'qc', ->
     expect(qc(prop, qc.int).message).toMatch(/Passed \d{3} tests \(\d{1,3} skipped\)/)
 
   it 'can show a histogram', ->
-    # console.log(JSON.stringify("vÄeHÝ sÕPûÃRWÜ/ÃK\rûðÿB%Á\u0012ùRü\u0015·õÏK\u0004ªqÔh¿xa\u0007Æ¸äà*ø¾$À\u001a~K>3ü#o§1\u001e%mEAßöÒß".toUpperCase()))
     prop_double_number_is_divisible_by_two = (i) ->
       if (i + i) % 2 == 0
         if i % 2 == 0 then "even" else "odd"
@@ -84,9 +83,13 @@ describe 'qc', ->
         expect(qc.string.matching(/^[a-g\d]+$/)(5)).toMatch(/^[a-g\d]+$/)
         expect(qc.string.matching(/^[^a-g\d]+$/)(5)).toMatch(/^[^a-g\d]+$/)
 
-  describe 'any', ->
-    it 'can be of any type', ->
-      expect((any) -> [any].pop() == any).forAll(qc.any)
+  describe 'various', ->
+    describe 'any', ->
+      it 'can be of any type', ->
+        expect((any) -> [any].pop() == any).forAll(qc.any)
+    describe 'location', ->
+      it 'is a valid location', ->
+        expect(([lat, long]) -> -90 <= lat <= 90 and -180 <= long <= 180).forAll(qc.location)
 
   describe 'number', ->
     describe 'dice', ->
