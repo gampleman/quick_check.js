@@ -21,7 +21,7 @@ qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (-> ->), (-> undefined), q
 qc.any.simple = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(undefined, null)
 
 # qc.any.datatype will only generate types that are data, not code, i.e. booleans, numbers, strings, null, arrays and objects
-qc.any.simple = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(undefined, null), qc.array, qc.object
+qc.any.datatype = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(undefined, null), qc.array, qc.object
 
 # Color is a utility for making web colors, i.e. will return a CSS compatible string (#fff).
 qc.color = qc.string.matching(/^\#([A-F\d]{6}|[A-F\d]{3})$/i)

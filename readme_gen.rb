@@ -7,9 +7,9 @@ generators.each do |generator|
   lines.each{|line|
     if  line[0] == '#'
       if groups.length > 0 && groups.last[:type] == :comment
-        groups.last[:content] << "\n" + line[1..-1].strip
+        groups.last[:content] << "\n" + line.gsub(/^#\s?/, '')
       else
-        groups << {type: :comment, content: line[1..-1].strip}
+        groups << {type: :comment, content: line.gsub(/^#\s?/, '')}
       end
     else
       if groups.length > 0  && groups.last[:type] == :code
@@ -24,7 +24,13 @@ generators.each do |generator|
     group[:type] == :code && group[:content].match(/^qc\.[\w\.]+\s*=/)
   }.map{ |group, i|
     comment = groups[i - 1]
-    [group[:content].match(/^(qc\.[\w\.]+)\s*=/).captures.first, i, comment[:content]] if comment[:type] == :comment
+    match = group[:content].match(/^(qc\.[\w\.]+)\s*=\s*(?:\((.*?)\)\s*\->|\w|\->)/)
+    if match.captures[1] == 'size' || match.captures[1] == nil
+      title = match.captures.first
+    else
+      title = "#{match.captures.first}(#{match.captures.last})"
+    end
+    [title, i, comment[:content]] if comment[:type] == :comment
   }
 
   headers = groups.each_with_index.to_a.select{ |group, i|
