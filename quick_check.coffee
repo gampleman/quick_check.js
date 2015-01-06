@@ -15,7 +15,11 @@ qc = (prop, generators...) ->
     result = prop(examples...)
     if result == false
       skippedString = if skipped > 0 then " (#{skipped} skipped)" else ""
-      return pass: no, examples: examples, message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+      return {
+        pass: no,
+        examples: examples,
+        message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+      }
     if result == undefined
       num++; skipped++
       if skipped > 200
@@ -107,8 +111,8 @@ qc.choose =  (range...) -> qc.pick(range...)()
 # and generate a value from it. For example:
 #
 #     stringOrNumber = qc.oneOf(qc.string, qc.real)
-#     stringOrNumber(size) // "frqw"
-#     stringOrNumber(size) // 5.54
+#     stringOrNumber(size) # "frqw"
+#     stringOrNumber(size) # 5.54
 qc.oneOf =  (generators...) ->
   (size) ->
     qc.choose(generators...)(size)
@@ -165,10 +169,10 @@ qc.natural.large = -> Math.ceil(qc.random() * Number.MAX_VALUE)
 # Range generators will generate an array of two numbers where the second is
 # guaranteed to be larger than the first. i.e.
 #
-#    expect(function(r) { return r[0] < r[1]}).forAll(qc.range());
-#    expect(function(r) { return r[0] <= r[1]}).forAll(qc.range.inclusive(qc.real));
-#    expect(function(r) { return r[0] < r[1] && r[0] >= 0}).forAll(qc.range(qc.ureal));
-#    expect(function(r) { return r[0] < r[1] && r[0] > 0}).forAll(qc.range(qc.natural));
+#     expect(([min, max]) -> min < max).forAll(qc.range())
+#     expect(([min, max]) -> min <= max).forAll(qc.range.inclusive(qc.real))
+#     expect(([min, max]) -> 0 <= min < max).forAll(qc.range(qc.ureal))
+#     expect(([min, max]) -> 0 < min < max).forAll(qc.range(qc.natural))
 qc.range = (gen = qc.real) ->
   (size) ->
     start = gen(size)
@@ -180,6 +184,36 @@ qc.range.inclusive = (gen = qc.real) ->
   (size) ->
     start = gen(size)
     [start, start + Math.abs(gen(size))]
+
+# The dice generator takes a D&D style dice string and transforms it into a random
+# number generator. This can serve as a very quick method how to quickly approximate
+# distributions.
+#
+#     qc.dice('d3') == -> Math.ceil(qc.random() * 3)
+#     qc.dice('d2 + d4 + 3') == ->
+#       Math.ceil(qc.random() * 2) + Math.ceil(qc.random() * 4) + 3
+#     qc.dice('2d6') == ->
+#       Math.ceil(qc.random() * 6) + Math.ceil(qc.random() * 6)
+qc.dice = (config) ->
+  new Function (config.split(/\s*\+\s*/).reduce (code, arg) ->
+    if match = arg.match(/(\d*)d(\d+)/)
+      num = parseInt(match[1], 10) or 1
+      max = parseInt match[2], 10
+      if num < 5
+        str = ''
+        str += " + Math.ceil(qc.random() * #{max})" for i in [1..num]
+        code + str
+      else # we do not want to inline this loop
+        code + " + (function() {
+          var sum = 0;
+          for (var i = 0; i < #{num}; i++) {
+            sum += Math.ceil(qc.random() * #{max});
+          }
+          return sum;
+        })()"
+    else
+      code + " + #{parseInt(arg)}"
+  , 'return ') + ';'
 
 # ### Array generators
 
@@ -249,6 +283,42 @@ arraysEqual = (a1, a2) ->
     if arg != a2[i]
       return false
     return true
+
+# A procedure is a function composed of discrete operations that has side effects.
+#
+# As an example, we give a procedure to draw a random image into the canvas
+#
+#     drawCanvas = qc.procedure () ->
+#       t1 = qc.intUpto @w
+#       t2 = qc.intUpto @h
+#       @ctx.lineTo t1, t2
+#     , () ->
+#       @ctx.fillStyle = qc.color(@size)
+#       @ctx.fill()
+#     , () ->
+#       @ctx.strokeStyle = qc.color(@size)
+#       @ctx.stroke()
+#     , () ->
+#       @ctx.closePath()
+#     , () ->
+#       t1 = qc.intUpto @w
+#       t2 = qc.intUpto @h
+#       @ctx.moveTo @w, @h
+#
+#     randomPNGDataURL = (size) ->
+#       canvas = document.createElement('canvas')
+#       canvas.width = w = 4 * qc.intUpto size
+#       canvas.height = h = 4 * qc.intUpto size
+#       drawCanvas(size)({ctx: canvas.getContext('2d'), w, h})
+#       canvas.toDataURL()
+qc.procedure = (steps...) ->
+  (size) ->
+    execution = qc.arrayOf(qc.pick steps)(size)
+    (globals) ->
+      globals.size = size
+      execution.reduce (prevVals, fn) ->
+        fn.apply(globals, prevVals)
+      , []
 
 # ### Object generators
 
@@ -496,8 +566,7 @@ generatorForPattern = (toks, caseInsensitive, captures, captureLevel) ->
       else
         gens.push(capture(generatorForPattern(toks, caseInsensitive, captures, captureLevel + 1), captures, captureLevel))
     else
-      console.log "Usuported characher: '#{token}'"
-      throw "Usuported characher: '#{token}'"
+      gens.push(-> token)
   qc.string.concat(gens)
 
 qc.string.matching = (pattern) ->
@@ -532,7 +601,23 @@ qc.date =  qc.constructor Date, qc.uint.large
 #       16% | `real`
 #       20% | `integer`
 #       25% | `boolean`
-qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (-> ->), qc.string, qc.array, qc.object
+qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (-> ->), (-> undefined), qc.string, qc.array, qc.object
+
+# qc.any.simple will only generate simple types, i.e. booleans, numbers, strings and null
+qc.any.simple = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(undefined, null)
+
+# qc.any.datatype will only generate types that are data, not code, i.e. booleans, numbers, strings, null, arrays and objects
+qc.any.simple = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(undefined, null), qc.array, qc.object
+
+# Color is a utility for making web colors, i.e. will return a CSS compatible string (#fff).
+qc.color = qc.string.matching(/^\#([A-F\d]{6}|[A-F\d]{3})$/i)
+
+# Location calculates a random lat, long pair on the surface of the Earth.
+qc.location = ->
+  rad2deg = (n) -> 360 * n / (2 * Math.PI)
+  x = qc.random() * 2 * Math.PI - Math.PI
+  y = Math.PI / 2 - Math.acos(qc.random() * 2 - 1)
+  [rad2deg(y), rad2deg(x)]
 
 # # Jasmine integration
 

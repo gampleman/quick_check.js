@@ -45,7 +45,11 @@ if a string is returned we classify the tests based on the returned string.</p>
     result = prop(examples...)
     <span class="hljs-keyword">if</span> result == <span class="hljs-literal">false</span>
       skippedString = <span class="hljs-keyword">if</span> skipped &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-string">" (<span class="hljs-subst">#{skipped}</span> skipped)"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
-      <span class="hljs-keyword">return</span> <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>, <span class="hljs-attribute">examples</span>: examples, <span class="hljs-attribute">message</span>: <span class="hljs-string">"Falsified after <span class="hljs-subst">#{i}</span> attempts<span class="hljs-subst">#{skippedString}</span>. Counter-example: <span class="hljs-subst">#{stringify(examples, generators)}</span>"</span>
+      <span class="hljs-keyword">return</span> {
+        <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>,
+        <span class="hljs-attribute">examples</span>: examples,
+        <span class="hljs-attribute">message</span>: <span class="hljs-string">"Falsified after <span class="hljs-subst">#{i}</span> attempts<span class="hljs-subst">#{skippedString}</span>. Counter-example: <span class="hljs-subst">#{stringify(examples, generators)}</span>"</span>
+      }
     <span class="hljs-keyword">if</span> result == <span class="hljs-literal">undefined</span>
       num++; skipped++
       <span class="hljs-keyword">if</span> skipped &gt; <span class="hljs-number">200</span>
@@ -309,8 +313,8 @@ qc.<span class="hljs-function"><span class="hljs-title">choose</span> =  <span c
               <p><code>qc.oneOf</code> will choose between all the generators passed to it (accepts also an array of generators)
 and generate a value from it. For example:</p>
 <pre><code>stringOrNumber = qc.oneOf(qc.string, qc.real)
-stringOrNumber(size) <span class="hljs-regexp">//</span> <span class="hljs-string">"frqw"</span>
-stringOrNumber(size) <span class="hljs-regexp">//</span> <span class="hljs-number">5.54</span>
+stringOrNumber(size) <span class="hljs-comment"># "frqw"</span>
+stringOrNumber(size) <span class="hljs-comment"># 5.54</span>
 </code></pre>
             </div>
             
@@ -424,11 +428,11 @@ qc.natural.<span class="hljs-function"><span class="hljs-title">large</span> = -
               </div>
               <p>Range generators will generate an array of two numbers where the second is
 guaranteed to be larger than the first. i.e.</p>
-<p>   expect(function(r) { return r[0] &lt; r[1]}).forAll(qc.range());
-   expect(function(r) { return r[0] &lt;= r[1]}).forAll(qc.range.inclusive(qc.real));
-   expect(function(r) { return r[0] &lt; r[1] &amp;&amp; r[0] &gt;= 0}).forAll(qc.range(qc.ureal));
-   expect(function(r) { return r[0] &lt; r[1] &amp;&amp; r[0] &gt; 0}).forAll(qc.range(qc.natural));</p>
-
+<pre><code>expect<span class="hljs-function"><span class="hljs-params">(([min, max]) -&gt; min &lt; max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range())</span>
+<span class="hljs-title">expect</span><span class="hljs-params">(([min, max]) -&gt; min &lt;= max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range.inclusive(qc.real))</span>
+<span class="hljs-title">expect</span><span class="hljs-params">(([min, max]) -&gt; <span class="hljs-number">0</span> &lt;= min &lt; max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range(qc.ureal))</span>
+<span class="hljs-title">expect</span><span class="hljs-params">(([min, max]) -&gt; <span class="hljs-number">0</span> &lt; min &lt; max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range(qc.natural))</span></span>
+</code></pre>
             </div>
             
             <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">range</span> = <span class="hljs-params">(gen = qc.real)</span> -&gt;</span>
@@ -452,9 +456,39 @@ qc.range.<span class="hljs-function"><span class="hljs-title">inclusive</span> =
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
-              <h3 id="array-generators">Array generators</h3>
-
+              <p>The dice generator takes a D&amp;D style dice string and transforms it into a random
+number generator. This can serve as a very quick method how to quickly approximate
+distributions.</p>
+<pre><code>qc.dice(<span class="hljs-string">'d3'</span>) ==<span class="hljs-function"> -&gt;</span> Math.ceil(qc.random() * <span class="hljs-number">3</span>)
+qc.dice(<span class="hljs-string">'d2 + d4 + 3'</span>) ==<span class="hljs-function"> -&gt;</span>
+  Math.ceil(qc.random() * <span class="hljs-number">2</span>) + Math.ceil(qc.random() * <span class="hljs-number">4</span>) + <span class="hljs-number">3</span>
+qc.dice(<span class="hljs-string">'2d6'</span>) ==<span class="hljs-function"> -&gt;</span>
+  Math.ceil(qc.random() * <span class="hljs-number">6</span>) + Math.ceil(qc.random() * <span class="hljs-number">6</span>)
+</code></pre>
             </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">dice</span> = <span class="hljs-params">(config)</span> -&gt;</span>
+  <span class="hljs-keyword">new</span> Function <span class="hljs-function"><span class="hljs-params">(config.split(<span class="hljs-regexp">/\s*\+\s*/</span>).reduce (code, arg) -&gt;
+    <span class="hljs-keyword">if</span> match = arg.match(<span class="hljs-regexp">/(\d*)d(\d+)/</span>)
+      num = parseInt(match[<span class="hljs-number">1</span>], <span class="hljs-number">10</span>) <span class="hljs-keyword">or</span> <span class="hljs-number">1</span>
+      max = parseInt match[<span class="hljs-number">2</span>], <span class="hljs-number">10</span>
+      <span class="hljs-keyword">if</span> num &lt; <span class="hljs-number">5</span>
+        str = <span class="hljs-string">''</span>
+        str += <span class="hljs-string">" + Math.ceil(qc.random() * <span class="hljs-subst">#{max}</span>)"</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">1.</span>.num]
+        code + str
+      <span class="hljs-keyword">else</span> # we <span class="hljs-keyword">do</span> <span class="hljs-keyword">not</span> want to inline <span class="hljs-keyword">this</span> <span class="hljs-keyword">loop</span>
+        code + <span class="hljs-string">" + (function() {
+          var sum = 0;
+          for (var i = 0; i &lt; <span class="hljs-subst">#{num}</span>; i++) {
+            sum += Math.ceil(qc.random() * <span class="hljs-subst">#{max}</span>);
+          }
+          return sum;
+        })()"</span>
+    <span class="hljs-keyword">else</span>
+      code + <span class="hljs-string">" + <span class="hljs-subst">#{parseInt(arg)}</span>"</span>
+  , <span class="hljs-string">'return '</span>)</span> + ';'
+
+</span></pre></div></div>
             
         </li>
         
@@ -464,6 +498,19 @@ qc.range.<span class="hljs-function"><span class="hljs-title">inclusive</span> =
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <h3 id="array-generators">Array generators</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p><code>qc.arrayOf(generator)</code> will return a random generator, which will generate
 an array from that generator.</p>
@@ -477,11 +524,11 @@ an array from that generator.</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p><code>qc.array</code> will generate a random array of any type.</p>
 
@@ -492,11 +539,11 @@ an array from that generator.</p>
         </li>
         
         
-        <li id="section-25">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <h3 id="function-generators">Function generators</h3>
 
@@ -505,11 +552,11 @@ an array from that generator.</p>
         </li>
         
         
-        <li id="section-26">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>Generating a function has several limitations. Firstly we will only want to
 generate pure functions. A pure function can take a number of arguments and returns
@@ -561,11 +608,11 @@ readable source code.</p>
         </li>
         
         
-        <li id="section-27">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p>To lookup things in the table we need a notion of equality. QuickCheck currently
 supports only equality testing with <code>===</code>, however in future versions we will
@@ -583,11 +630,57 @@ hopefully lift this limitation.</p>
         </li>
         
         
-        <li id="section-28">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>A procedure is a function composed of discrete operations that has side effects.</p>
+<p>As an example, we give a procedure to draw a random image into the canvas</p>
+<pre><code>drawCanvas = qc.procedure <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+  t1 = qc.intUpto <span class="hljs-property">@w</span>
+  t2 = qc.intUpto <span class="hljs-property">@h</span>
+  <span class="hljs-property">@ctx</span>.lineTo t1, t2
+, <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+  <span class="hljs-property">@ctx</span>.fillStyle = qc.color(<span class="hljs-property">@size</span>)
+  <span class="hljs-property">@ctx</span>.fill()
+, <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+  <span class="hljs-property">@ctx</span>.strokeStyle = qc.color(<span class="hljs-property">@size</span>)
+  <span class="hljs-property">@ctx</span>.stroke()
+, <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+  <span class="hljs-property">@ctx</span>.closePath()
+, <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+  t1 = qc.intUpto <span class="hljs-property">@w</span>
+  t2 = qc.intUpto <span class="hljs-property">@h</span>
+  <span class="hljs-property">@ctx</span>.moveTo <span class="hljs-property">@w</span>, <span class="hljs-property">@h</span>
+
+<span class="hljs-function"><span class="hljs-title">randomPNGDataURL</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+  canvas = <span class="hljs-built_in">document</span>.createElement(<span class="hljs-string">'canvas'</span>)
+  canvas.width = w = <span class="hljs-number">4</span> * qc.intUpto size
+  canvas.height = h = <span class="hljs-number">4</span> * qc.intUpto size
+  drawCanvas(size)({<span class="hljs-attribute">ctx</span>: canvas.getContext(<span class="hljs-string">'2d'</span>), w, h})
+  canvas.toDataURL()
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">procedure</span> = <span class="hljs-params">(steps...)</span> -&gt;</span>
+  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    execution = qc.arrayOf(qc.pick steps)(size)
+    <span class="hljs-function"><span class="hljs-params">(globals)</span> -&gt;</span>
+      globals.size = size
+      execution.reduce <span class="hljs-function"><span class="hljs-params">(prevVals, fn)</span> -&gt;</span>
+        fn.apply(globals, prevVals)
+      , []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <h3 id="object-generators">Object generators</h3>
 
@@ -596,11 +689,11 @@ hopefully lift this limitation.</p>
         </li>
         
         
-        <li id="section-29">
+        <li id="section-31">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
               <p><code>qc.objectLike</code> accepts a template of an object with random generators as values,
 and returns a generator of that form of object.</p>
@@ -628,11 +721,11 @@ and returns a generator of that form of object.</p>
         </li>
         
         
-        <li id="section-30">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-30">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <p><code>qc.objectOf</code> generates an object containing the passed type as its values.</p>
 
@@ -648,11 +741,11 @@ and returns a generator of that form of object.</p>
         </li>
         
         
-        <li id="section-31">
+        <li id="section-33">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               <p><code>qc.object</code> generates an object containing random types</p>
 
@@ -663,11 +756,11 @@ and returns a generator of that form of object.</p>
         </li>
         
         
-        <li id="section-32">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-32">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <h3 id="string-generators">String generators</h3>
 
@@ -676,11 +769,11 @@ and returns a generator of that form of object.</p>
         </li>
         
         
-        <li id="section-33">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p><code>qc.char</code> will return a random string with a single chararcter.</p>
 
@@ -691,11 +784,11 @@ and returns a generator of that form of object.</p>
         </li>
         
         
-        <li id="section-34">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-34">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               <p><code>qc.string</code> will generate a string of random charachters.</p>
 
@@ -709,11 +802,11 @@ and returns a generator of that form of object.</p>
         </li>
         
         
-        <li id="section-35">
+        <li id="section-37">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-35">&#182;</a>
+                <a class="pilcrow" href="#section-37">&#182;</a>
               </div>
               <p><code>qc.string.ascii</code> will generate a string of random ascii charachters.</p>
 
@@ -726,11 +819,11 @@ and returns a generator of that form of object.</p>
         </li>
         
         
-        <li id="section-36">
+        <li id="section-38">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-36">&#182;</a>
+                <a class="pilcrow" href="#section-38">&#182;</a>
               </div>
               <p><code>qc.string.concat</code> is a generator combinator (see above) that will generate all
 the generators passed to it and then concatenate them into a single string.</p>
@@ -743,11 +836,11 @@ the generators passed to it and then concatenate them into a single string.</p>
         </li>
         
         
-        <li id="section-37">
+        <li id="section-39">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-37">&#182;</a>
+                <a class="pilcrow" href="#section-39">&#182;</a>
               </div>
               <p><code>qc.string.matching(regexp)</code> will generate a random string matching a regular
 expression. In order to do that the regular expression must be parsed and compiled
@@ -792,11 +885,11 @@ negated ranges <code>/[^b]/</code>.</li>
         </li>
         
         
-        <li id="section-38">
+        <li id="section-40">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-38">&#182;</a>
+                <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
               <p>Captures in our context are mostly useful for regexps where the use of backrefs
 is made. <code>/^([a-z]) = (\d) * \(\1 \/ \2\)$</code> will result in a meaningful string like
@@ -814,11 +907,11 @@ is made. <code>/^([a-z]) = (\d) * \(\1 \/ \2\)$</code> will result in a meaningf
         </li>
         
         
-        <li id="section-39">
+        <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-39">&#182;</a>
+                <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
               <p>We need some special behavior for characters following the <code>\</code>. This function
 provides that.</p>
@@ -857,11 +950,11 @@ provides that.</p>
         </li>
         
         
-        <li id="section-40">
+        <li id="section-42">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-40">&#182;</a>
+                <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
               <p>Captures are stored in a fairly complex data structure. The reason is that
 members of the data structure often need to be accessed before their parents
@@ -891,11 +984,11 @@ value is an array of all captures on that level.</p>
         </li>
         
         
-        <li id="section-41">
+        <li id="section-43">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-41">&#182;</a>
+                <a class="pilcrow" href="#section-43">&#182;</a>
               </div>
               <p>Now that we have all the basic elements in place we can do the actual parsing.
 This is done recursively for all groups (e.g. anything wrapped with parentheses).</p>
@@ -919,11 +1012,11 @@ This is done recursively for all groups (e.g. anything wrapped with parentheses)
         </li>
         
         
-        <li id="section-42">
+        <li id="section-44">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-42">&#182;</a>
+                <a class="pilcrow" href="#section-44">&#182;</a>
               </div>
               <p>We implement lazy repeaters as generating shorter strings on average.</p>
 
@@ -1003,8 +1096,7 @@ This is done recursively for all groups (e.g. anything wrapped with parentheses)
       <span class="hljs-keyword">else</span>
         gens.push(capture(generatorForPattern(toks, caseInsensitive, captures, captureLevel + <span class="hljs-number">1</span>), captures, captureLevel))
     <span class="hljs-keyword">else</span>
-      <span class="hljs-built_in">console</span>.log <span class="hljs-string">"Usuported characher: '<span class="hljs-subst">#{token}</span>'"</span>
-      <span class="hljs-keyword">throw</span> <span class="hljs-string">"Usuported characher: '<span class="hljs-subst">#{token}</span>'"</span>
+      gens.push(<span class="hljs-function">-&gt;</span> token)
   qc.string.concat(gens)
 
 qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> = <span class="hljs-params">(pattern)</span> -&gt;</span>
@@ -1025,11 +1117,11 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
         </li>
         
         
-        <li id="section-43">
+        <li id="section-45">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-43">&#182;</a>
+                <a class="pilcrow" href="#section-45">&#182;</a>
               </div>
               <h3 id="misc-generators">Misc generators</h3>
 
@@ -1038,11 +1130,11 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
         </li>
         
         
-        <li id="section-44">
+        <li id="section-46">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-44">&#182;</a>
+                <a class="pilcrow" href="#section-46">&#182;</a>
               </div>
               <p>qc.date will generate a random date</p>
 
@@ -1053,11 +1145,11 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
         </li>
         
         
-        <li id="section-45">
+        <li id="section-47">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-45">&#182;</a>
+                <a class="pilcrow" href="#section-47">&#182;</a>
               </div>
               <p>qc.any will generate a value of any type. For performance reasons there is a bias
 towards simpler types with the following approx. distribution:</p>
@@ -1102,16 +1194,80 @@ towards simpler types with the following approx. distribution:</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (<span class="hljs-function">-&gt;</span><span class="hljs-function"> -&gt;</span>), qc.string, qc.array, qc.object</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.any = qc.oneOfByPriority qc.bool, qc.int, qc.real, (<span class="hljs-function">-&gt;</span><span class="hljs-function"> -&gt;</span>), (<span class="hljs-function">-&gt;</span> <span class="hljs-literal">undefined</span>), qc.string, qc.array, qc.object</pre></div></div>
             
         </li>
         
         
-        <li id="section-46">
+        <li id="section-48">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-46">&#182;</a>
+                <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <p>qc.any.simple will only generate simple types, i.e. booleans, numbers, strings and null</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.any.simple = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(<span class="hljs-literal">undefined</span>, <span class="hljs-literal">null</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-49">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>qc.any.datatype will only generate types that are data, not code, i.e. booleans, numbers, strings, null, arrays and objects</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.any.simple = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(<span class="hljs-literal">undefined</span>, <span class="hljs-literal">null</span>), qc.array, qc.object</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-50">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              <p>Color is a utility for making web colors, i.e. will return a CSS compatible string (#fff).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.color = qc.string.matching(<span class="hljs-regexp">/^\#([A-F\d]{6}|[A-F\d]{3})$/i</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-51">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-51">&#182;</a>
+              </div>
+              <p>Location calculates a random lat, long pair on the surface of the Earth.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">location</span> = -&gt;</span>
+  <span class="hljs-function"><span class="hljs-title">rad2deg</span> = <span class="hljs-params">(n)</span> -&gt;</span> <span class="hljs-number">360</span> * n / (<span class="hljs-number">2</span> * Math.PI)
+  x = qc.random() * <span class="hljs-number">2</span> * Math.PI - Math.PI
+  y = Math.PI / <span class="hljs-number">2</span> - Math.acos(qc.random() * <span class="hljs-number">2</span> - <span class="hljs-number">1</span>)
+  [rad2deg(y), rad2deg(x)]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-52">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-52">&#182;</a>
               </div>
               <h1 id="jasmine-integration">Jasmine integration</h1>
 
@@ -1120,11 +1276,11 @@ towards simpler types with the following approx. distribution:</p>
         </li>
         
         
-        <li id="section-47">
+        <li id="section-53">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-47">&#182;</a>
+                <a class="pilcrow" href="#section-53">&#182;</a>
               </div>
               <p>Integrating into Jasmine is very simple. Feel free to contribute adapters for
 other testing toolkits.</p>
