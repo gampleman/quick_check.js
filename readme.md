@@ -116,11 +116,18 @@ This will generate a string matching the regexp passed to it.
 ### Array generators
 
 ### `qc.arrayOf`
-`qc.arrayOf(generator)` will return a random generator, which will generate
-an array from that generator.
+`qc.arrayOf(generator, options = {})` will return a random generator, which will generate
+an array from that generator. You can specify a genertor or a constant value for the
+length property in `options`, the generated array will then have that length.
 
 ### `qc.array`
 `qc.array` will generate a random array of any type.
+
+### `qc.array.subsetOf`
+`qc.array.subsetOf(array, options)` will return a random generator that will generate
+a subset of an array.
+
+For example `qc.array.subsetOf([1,2,3,4])(size)` could yield `[3, 1]`.
 
 ## Object generators
 
@@ -140,7 +147,8 @@ qc.objectLike({
 ~~~
 
 ### `qc.objectOf`
-`qc.objectOf` generates an object containing the passed type as its values.
+`qc.objectOf` generates an object containing the passed type as its values. Optionally
+a second argument can be a generator for the key (defaults to `qc.string`).
 
 ### `qc.object`
 `qc.object` generates an object containing random types
@@ -149,6 +157,10 @@ qc.objectLike({
 
 ### `qc.function`
 Generates a pure function that will have the return value of the passed generator.
+
+### `qc.procedure`
+A procedure is a function composed of discrete operations that has side effects.
+This function accepts an object or a class and it will randomly call its methods.
 
 ## Misc generators
 
