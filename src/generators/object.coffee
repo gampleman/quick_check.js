@@ -22,11 +22,11 @@ qc.objectLike = (template) ->
     result
 
 # `qc.objectOf` generates an object containing the passed type as its values.
-qc.objectOf =  (generator) ->
+qc.objectOf =  (generator, keygen = qc.string) ->
   (size) ->
     result = {}
     for i in [0..qc.intUpto(size)]
-      result[qc.string(size)] = generator(i)
+      result[keygen(size)] = generator(i)
     result
 
 # `qc.object` generates an object containing random types

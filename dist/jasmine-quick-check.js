@@ -125,11 +125,27 @@ if (typeof module !== "undefined" && module !== null) {
   module.exports = qc;
 }
 
-qc.arrayOf = function(generator) {
+var normalizeOptions;
+
+normalizeOptions = function(options) {
+  if (options == null) {
+    options = {};
+  }
+  return {
+    length: options.length != null ? typeof options.length === 'function' ? options.length : function() {
+      return options.length;
+    } : qc.intUpto
+  };
+};
+
+qc.arrayOf = function(generator, options) {
+  if (options == null) {
+    options = {};
+  }
   return function(size) {
     var i, _i, _ref, _results;
     _results = [];
-    for (i = _i = 0, _ref = qc.intUpto(size); 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+    for (i = _i = 0, _ref = normalizeOptions(options).length(size); 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       _results.push(generator(i));
     }
     return _results;
@@ -140,13 +156,31 @@ qc.array = function(size) {
   return qc.arrayOf(qc.any)(size > 1 ? size - 1 : 0);
 };
 
+qc.array.subsetOf = function(array, options) {
+  if (options == null) {
+    options = {};
+  }
+  if (options.length == null) {
+    options.length = qc.intUpto(array.length);
+  }
+  return function(size) {
+    var copy, i, _i, _ref, _results;
+    copy = array.slice();
+    _results = [];
+    for (i = _i = 0, _ref = normalizeOptions(options).length(size); 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+      _results.push(copy.splice(qc.intUpto(copy.length), 1)[0]);
+    }
+    return _results;
+  };
+};
+
 var __slice = [].slice;
 
-qc.bool = function() {
+qc.bool = function(size) {
   return qc.choose(true, false);
 };
 
-qc.byte = function() {
+qc.byte = function(size) {
   return Math.floor(qc.random() * 256);
 };
 
@@ -256,7 +290,8 @@ qc.except = function() {
 };
 
 var arraysEqual,
-  __slice = [].slice;
+  __slice = [].slice,
+  __hasProp = {}.hasOwnProperty;
 
 qc["function"] = function() {
   var args, generator, returnGenerator, _i;
@@ -337,30 +372,140 @@ arraysEqual = function(a1, a2) {
   }
 };
 
-qc.procedure = function() {
-  var steps;
-  steps = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+qc.procedure = function(obj, injectorConfig) {
+  var FN_ARG, FN_ARGS, FN_ARG_SPLIT, STRIP_COMMENTS, extractArgs, fnKeys, getGenerators, initializeInjector;
+  if (injectorConfig == null) {
+    injectorConfig = {};
+  }
+  FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+  FN_ARG_SPLIT = /,/;
+  FN_ARG = /^\s*(\S+?)\s*$/;
+  STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+  extractArgs = function(fn) {
+    var argName, args, _i, _len, _ref, _results;
+    args = fn.toString().replace(STRIP_COMMENTS, '').match(FN_ARGS);
+    if (args) {
+      _ref = args[1].split(FN_ARG_SPLIT);
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        argName = _ref[_i];
+        if (argName !== '') {
+          _results.push(argName.match(FN_ARG)[1]);
+        }
+      }
+      return _results;
+    }
+  };
+  fnKeys = function(obj) {
+    var key, val, _results;
+    _results = [];
+    for (key in obj) {
+      val = obj[key];
+      if (key !== '$final' && (typeof val === 'function' || typeof val === 'object' && val.length && typeof val[val.length - 1] === 'function')) {
+        _results.push(key);
+      }
+    }
+    return _results;
+  };
+  getGenerators = function(injector, obj, prefix) {
+    var fn, key;
+    for (key in obj) {
+      if (!__hasProp.call(obj, key)) continue;
+      fn = obj[key];
+      if (typeof fn === 'function' && fn.length === 1 && extractArgs(fn)[0] === 'size') {
+        injector[prefix + key] = fn;
+      }
+      getGenerators(injector, fn, prefix + key + '_');
+    }
+  };
+  initializeInjector = function(injectorConfig) {
+    var injector, key, val;
+    injector = {};
+    getGenerators(injector, qc, '');
+    for (key in injectorConfig) {
+      val = injectorConfig[key];
+      injector[key] = val;
+    }
+    return injector;
+  };
   return function(size) {
-    var execution;
-    execution = qc.arrayOf(qc.pick(steps))(size);
-    return function(globals) {
-      globals.size = size;
-      return execution.reduce(function(prevVals, fn) {
-        return fn.apply(globals, prevVals);
-      }, []);
+    var injector, invoke;
+    injector = initializeInjector(injectorConfig);
+    invoke = function(key, args) {
+      var fn, gen, injectors, name;
+      injectors = [];
+      injector.$args = function() {
+        return args;
+      };
+      fn = function() {};
+      if (typeof obj[key] === 'function') {
+        fn = obj[key];
+        if (obj[key].$inject != null) {
+          injectors = obj[key].$inject != null;
+        } else {
+          injectors = (function() {
+            var _i, _len, _ref, _results;
+            _ref = extractArgs(obj[key]);
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              name = _ref[_i];
+              _results.push(injector[name.replace(/\d+$/, '')]);
+            }
+            return _results;
+          })();
+        }
+      } else {
+        fn = obj[key][obj[key].length - 1];
+        injectors = obj[key].slice(0, -1);
+      }
+      return fn.apply(obj, (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = injectors.length; _i < _len; _i++) {
+          gen = injectors[_i];
+          _results.push(gen(size));
+        }
+        return _results;
+      })());
+    };
+    return function() {
+      var args, execution, key, steps, _i, _len;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      obj = typeof obj === 'function' ? new obj(args) : obj;
+      steps = fnKeys(obj);
+      execution = qc.arrayOf(qc.pick(steps))(size);
+      for (_i = 0, _len = execution.length; _i < _len; _i++) {
+        key = execution[_i];
+        invoke(key, args);
+      }
+      if (obj.$final) {
+        return invoke('$final', args);
+      } else {
+        return void 0;
+      }
     };
   };
 };
 
+var adjust;
+
+adjust = function(size) {
+  if (size < 1) {
+    return Math.abs(size) + 1;
+  } else {
+    return size;
+  }
+};
+
 qc.intUpto = function(size) {
-  return Math.floor(qc.random() * size);
+  return Math.floor(qc.random() * adjust(size));
 };
 
 qc.ureal = function(size) {
-  return qc.random() * size * size;
+  return qc.random() * adjust(size * size);
 };
 
-qc.ureal.large = function() {
+qc.ureal.large = function(size) {
   return qc.random() * Number.MAX_VALUE;
 };
 
@@ -368,37 +513,37 @@ qc.real = function(size) {
   return qc.choose(1, -1) * qc.ureal(size);
 };
 
-qc.real.large = function() {
+qc.real.large = function(size) {
   return qc.choose(1, -1) * qc.ureal.large();
 };
 
 qc.uint = function(size) {
-  return qc.intUpto(size * size);
+  return qc.intUpto(adjust(size * size));
 };
 
-qc.uint.large = function() {
+qc.uint.large = function(size) {
   return Math.floor(qc.random() * Number.MAX_VALUE);
 };
 
 qc.int = function(size) {
-  return qc.choose(1, -1) * qc.intUpto(size);
+  return qc.choose(1, -1) * qc.intUpto(adjust(size));
 };
 
-qc.int.large = function() {
+qc.int.large = function(size) {
   return qc.choose(1, -1) * qc.uint.large();
 };
 
 qc.int.between = function(min, max) {
   return function(size) {
-    return min + qc.intUpto(Math.min(max + 1 - min, size));
+    return min + qc.intUpto(Math.min(max + 1 - min, adjust(size)));
   };
 };
 
 qc.natural = function(size) {
-  return qc.intUpto(size * size) + 1;
+  return qc.intUpto(adjust(size * size)) + 1;
 };
 
-qc.natural.large = function() {
+qc.natural.large = function(size) {
   return Math.ceil(qc.random() * Number.MAX_VALUE);
 };
 
@@ -429,24 +574,84 @@ qc.range.inclusive = function(gen) {
 };
 
 qc.dice = function(config) {
-  return new Function((config.split(/\s*\+\s*/).reduce(function(code, arg) {
-    var i, match, max, num, str, _i;
-    if (match = arg.match(/(\d*)d(\d+)/)) {
-      num = parseInt(match[1], 10) || 1;
-      max = parseInt(match[2], 10);
-      if (num < 5) {
-        str = '';
-        for (i = _i = 1; 1 <= num ? _i <= num : _i >= num; i = 1 <= num ? ++_i : --_i) {
-          str += " + Math.ceil(qc.random() * " + max + ")";
+  var code, consume, declaration, i, isConditional, match, max, num, token, toks;
+  toks = config.trim();
+  code = '';
+  isConditional = false;
+  declaration = false;
+  consume = function(n) {
+    return toks = toks.substring(n);
+  };
+  while (toks.length > 0) {
+    token = toks[0];
+    switch (false) {
+      case token !== '+':
+        code += ' + ';
+        break;
+      case token !== '-':
+        code += ' - ';
+        break;
+      case token !== '*':
+        code += ' * ';
+        break;
+      case token !== '/':
+        throw new Error('Division is currently not supported');
+        break;
+      case token !== ' ':
+        code;
+        break;
+      case token !== '(':
+        code += '(';
+        break;
+      case token !== ')':
+        code += ')';
+        break;
+      case token !== '?':
+        isConditional = true;
+        code += ' > 0 ? ';
+        break;
+      case !(token === ':' && isConditional):
+        isConditional = false;
+        code += ' : ';
+        break;
+      case !(match = toks.match(/^(\d*)d(\d+)/)):
+        num = parseInt(match[1], 10) || 1;
+        max = parseInt(match[2], 10);
+        consume(match[0].length - 1);
+        if (num < 5) {
+          code += '(' + ((function() {
+            var _i, _results;
+            _results = [];
+            for (i = _i = 1; 1 <= num ? _i <= num : _i >= num; i = 1 <= num ? ++_i : --_i) {
+              _results.push("Math.ceil(qc.random() * " + max + ")");
+            }
+            return _results;
+          })()).join(' + ') + ')';
+        } else {
+          declaration = true;
+          code += "d(" + num + ", " + max + ")";
         }
-        return code + str;
-      } else {
-        return code + (" + (function() { var sum = 0; for (var i = 0; i < " + num + "; i++) { sum += Math.ceil(qc.random() * " + max + "); } return sum; })()");
-      }
-    } else {
-      return code + (" + " + (parseInt(arg)));
+        break;
+      case !(match = toks.match(/^(\d*)F/)):
+        num = parseInt(match[1], 10) || 1;
+        consume(match[0].length - 1);
+        code += "(qc.random() <= " + (Math.pow(0.5, num)) + " ? 1 : 0)";
+        break;
+      case !(match = toks.match(/^\d+/)):
+        num = parseInt(match[0], 10);
+        consume(match[0].length - 1);
+        code += num;
+        break;
+      default:
+        throw new Error("Unexpected token '" + token + "'.");
     }
-  }, 'return ')) + ';');
+    consume(1);
+  }
+  if (declaration) {
+    return new Function("function d(num, max) {\n  var sum = 0;\n  for (var i = 0; i < num; i++) {\n    sum += Math.ceil(qc.random() * max);\n  }\n  return sum;\n}\n\nreturn " + code + ";");
+  } else {
+    return new Function("return " + code + ";");
+  }
 };
 
 qc.objectLike = function(template) {
@@ -465,12 +670,15 @@ qc.objectLike = function(template) {
   };
 };
 
-qc.objectOf = function(generator) {
+qc.objectOf = function(generator, keygen) {
+  if (keygen == null) {
+    keygen = qc.string;
+  }
   return function(size) {
     var i, result, _i, _ref;
     result = {};
     for (i = _i = 0, _ref = qc.intUpto(size); 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-      result[qc.string(size)] = generator(i);
+      result[keygen(size)] = generator(i);
     }
     return result;
   };
@@ -483,7 +691,7 @@ qc.object = function(size) {
 var capture, generator, generatorForPattern, handleClass, makeComplimentaryRange, makeRange,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-qc.char = function() {
+qc.char = function(size) {
   return String.fromCharCode(qc.byte());
 };
 
@@ -675,6 +883,7 @@ generatorForPattern = function(toks, caseInsensitive, captures, captureLevel) {
       gens.push(generator.dot);
     } else if (token === '*') {
       if (toks[0] === '?') {
+        console.log("Lazy repeaters may provide incorrect results");
         toks.shift();
         gens.push(generator.repeat(gens.pop(), 0, 10));
       } else {
@@ -684,6 +893,7 @@ generatorForPattern = function(toks, caseInsensitive, captures, captureLevel) {
       gens.push(generator.repeat(gens.pop(), 0, 1));
     } else if (token === '+') {
       if (toks[0] === '?') {
+        console.log("Lazy repeaters may provide incorrect results");
         toks.shift();
         gens.push(generator.repeat(gens.pop(), 1, 10));
       } else {
@@ -785,7 +995,17 @@ qc.string.matching = function(pattern) {
   }
 };
 
-qc.date = qc.constructor(Date, qc.uint.large);
+qc.date = function(size) {
+  var d, hh, m, mm, ms, ss, y;
+  y = qc.intUpto(3000);
+  m = qc.intUpto(12);
+  d = qc.intUpto(m === 0 || m === 2 || m === 4 || m === 6 || m === 7 || m === 9 || m === 11 ? 31 : m === 3 || m === 5 || m === 8 || m === 10 ? 30 : 28);
+  hh = qc.intUpto(24);
+  mm = qc.intUpto(60);
+  ss = qc.intUpto(60);
+  ms = qc.intUpto(1000);
+  return new Date(y, m, d, hh, mm, ss, ms);
+};
 
 qc.any = qc.oneOfByPriority(qc.bool, qc.int, qc.real, (function() {
   return function() {};
@@ -799,7 +1019,7 @@ qc.any.datatype = qc.oneOf(qc.bool, qc.int, qc.real, qc.string, qc.pick(void 0, 
 
 qc.color = qc.string.matching(/^\#([A-F\d]{6}|[A-F\d]{3})$/i);
 
-qc.location = function() {
+qc.location = function(size) {
   var rad2deg, x, y;
   rad2deg = function(n) {
     return 360 * n / (2 * Math.PI);

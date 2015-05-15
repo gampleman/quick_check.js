@@ -60,34 +60,70 @@ arraysEqual = (a1, a2) ->
 #
 # As an example, we give a procedure to draw a random image into the canvas
 #
-#     drawCanvas = qc.procedure () ->
-#       t1 = qc.intUpto @w
-#       t2 = qc.intUpto @h
-#       @ctx.lineTo t1, t2
-#     , () ->
-#       @ctx.fillStyle = qc.color(@size)
-#       @ctx.fill()
-#     , () ->
-#       @ctx.strokeStyle = qc.color(@size)
-#       @ctx.stroke()
-#     , () ->
-#       @ctx.closePath()
-#     , () ->
-#       t1 = qc.intUpto @w
-#       t2 = qc.intUpto @h
-#       @ctx.moveTo @w, @h
+#     canvas = qc.procedure class Canvas
+#       # Constructor gets called only once
+#       constructor: ($args) ->
+#         @canvas = document.createElement('canvas')
+#         @canvas.width = @width = $args[0]
+#         @canvas.height = @height = $args[1]
+#         @ctx = canvas.getContext('2d')
+#       # A function can have basic types injected
+#       lineTo: (uint1, uint2) ->
+#         @ctx.lineTo Math.max(uint1, @width), Math.max(uint2, @height)
+#       # A $final method will only be called once and its return value
+#       # will be the return value of the procedure.
+#       $final: ->
+#         @canvas.toDataURL()
 #
-#     randomPNGDataURL = (size) ->
-#       canvas = document.createElement('canvas')
-#       canvas.width = w = 4 * qc.intUpto size
-#       canvas.height = h = 4 * qc.intUpto size
-#       drawCanvas(size)({ctx: canvas.getContext('2d'), w, h})
-#       canvas.toDataURL()
-qc.procedure = (steps...) ->
+#     expect (drawCanvas) ->
+#       isValidPng(drawCanvas(100, 100))
+#     .forAll canvas
+qc.procedure = (obj, injectorConfig = {}) ->
+  FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+  FN_ARG_SPLIT = /,/
+  FN_ARG = /^\s*(\S+?)\s*$/
+  STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg
+  extractArgs = (fn) ->
+    args = fn.toString().replace(STRIP_COMMENTS, '').match(FN_ARGS)
+    if args
+      argName.match(FN_ARG)[1] for argName in args[1].split(FN_ARG_SPLIT) when argName isnt ''
+
+  fnKeys = (obj) -> key for key, val of obj when key isnt '$final' and (typeof val is 'function' or typeof val is 'object' and val.length and typeof val[val.length - 1] is 'function')
+
+  getGenerators = (injector, obj, prefix) ->
+    for own key, fn of obj
+      if typeof fn is 'function' and fn.length is 1 and extractArgs(fn)[0] is 'size'
+        injector[prefix + key] = fn
+      getGenerators injector, fn, prefix + key + '_'
+    return
+
+  initializeInjector = (injectorConfig) ->
+    injector = {}
+    getGenerators injector, qc, ''
+    injector[key] = val for key, val of injectorConfig
+    injector
+
   (size) ->
-    execution = qc.arrayOf(qc.pick steps)(size)
-    (globals) ->
-      globals.size = size
-      execution.reduce (prevVals, fn) ->
-        fn.apply(globals, prevVals)
-      , []
+    injector = initializeInjector(injectorConfig)
+    invoke = (key, args) ->
+      injectors = []
+      injector.$args = -> args
+      fn = ->
+      if typeof obj[key] is 'function'
+        fn = obj[key]
+        if obj[key].$inject?
+          injectors = obj[key].$inject?
+        else
+          injectors = (injector[name.replace(/\d+$/, '')] for name in extractArgs(obj[key]))
+      else
+        fn = obj[key][obj[key].length - 1]
+        injectors = obj[key].slice(0, -1)
+      fn.apply(obj, gen(size) for gen in injectors)
+
+
+    (args...) ->
+      obj = if typeof obj is 'function' then new obj(args) else obj
+      steps = fnKeys obj
+      execution = qc.arrayOf(qc.pick steps)(size)
+      invoke(key, args) for key in execution
+      if obj.$final then invoke('$final', args) else undefined

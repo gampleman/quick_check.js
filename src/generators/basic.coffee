@@ -8,10 +8,10 @@
 # ### Basic generators
 
 # Generates a random boolean.
-qc.bool =  -> qc.choose(true, false)
+qc.bool = (size) -> qc.choose(true, false)
 
 # Generates a random integer between 0 and 255.
-qc.byte = -> Math.floor(qc.random() * 256)
+qc.byte = (size) -> Math.floor(qc.random() * 256)
 
 
 # Generates random objects by calling the constructor with random arguments.

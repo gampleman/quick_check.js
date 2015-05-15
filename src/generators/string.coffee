@@ -1,7 +1,7 @@
 # ### String generators
 
 # `qc.char` will return a random string with a single chararcter.
-qc.char =  -> String.fromCharCode(qc.byte())
+qc.char = (size) -> String.fromCharCode(qc.byte())
 
 # `qc.string` will generate a string of random charachters.
 qc.string = (size) ->
@@ -136,7 +136,10 @@ generatorForPattern = (toks, caseInsensitive, captures, captureLevel) ->
       gens.push(generator.dot)
     else if token is '*'
       # We implement lazy repeaters as generating shorter strings on average.
+      # This is not really correct, as a lazy repeater should guarentee that
+      # the string generated does not include what's after.
       if toks[0] == '?'
+        console.log "Lazy repeaters may provide incorrect results"
         toks.shift()
         gens.push(generator.repeat(gens.pop(), 0, 10))
       else
@@ -145,6 +148,7 @@ generatorForPattern = (toks, caseInsensitive, captures, captureLevel) ->
       gens.push(generator.repeat(gens.pop(), 0, 1))
     else if token is '+'
       if toks[0] == '?'
+        console.log "Lazy repeaters may provide incorrect results"
         toks.shift()
         gens.push(generator.repeat(gens.pop(), 1, 10))
       else

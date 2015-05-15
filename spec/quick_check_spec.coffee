@@ -108,7 +108,79 @@ describe 'qc', ->
         expect(cast).toBeLessThan 16
         expect(cast).toBeGreaterThan 4
 
+  describe 'array', ->
+    describe 'subsetOf', ->
+      uniq = (arr) ->
+        results = []
+        results.push(element) for element in arr when element not in results
+        results
+      it 'only generates subsets', ->
+        expect (arr, size) ->
+          qc.array.subsetOf(arr)(size).every (n) -> arr.indexOf(n) >= 0
+        .forAll qc.array, qc.intUpto
+      it 'doesnt include things twice unless they are twice in the original array', ->
+        expect (arr, size) ->
+          arr = uniq(arr)
+          subset = qc.array.subsetOf(arr)(size)
+          uniq(subset).length is subset.length
+        .forAll qc.array, qc.intUpto
+      it 'be default isnt longer than the input', ->
+        expect (arr, size) ->
+          qc.array.subsetOf(arr)(size).length <= arr.length
+        .forAll qc.array, qc.intUpto
+  describe 'date', ->
+    it 'returns a valid date', ->
+      expect (date) ->
+        !isNaN date.getTime()
+      .forAll qc.date
 
+  describe 'procedure', ->
+    it 'runs', ->
+      spy = jasmine.createSpy('spy')
+      qc.procedure({spy})(10)()
+      expect(spy).toHaveBeenCalled()
+    it 'injects basic types', ->
+      qc.procedure({
+        spy: (int1, int2, char) ->
+          expect(typeof int1).toBe 'number'
+          expect(typeof int2).toBe 'number'
+          expect(typeof char).toBe 'string'
+      })(10)()
+    it 'injcets custom types', ->
+      spy = jasmine.createSpy('spy').and.returnValue('TEST')
+      qc.procedure({
+        spy: [spy, (x) ->
+          expect(x).toBe('TEST')
+          expect(spy).toHaveBeenCalled()
+        ]
+      })(10)()
+    it 'injects arguments', ->
+      qc.procedure({
+        spy: ($args) ->
+          expect($args).toEqual [1,2,3]
+      })(10)(1, 2, 3)
+    it 'works with classes', ->
+      procedure = qc.procedure class Test
+        constructor: ($args) ->
+          @x = $args[0]
+        method: ->
+          # do something
+        $final: ->
+          @x
+      expect(procedure(10)(4)).toBe(4)
+    it 'example', ->
+      expect (initialState, transformer) ->
+        finalState = transformer(initialState)
+        finalState is 'car' or finalState is 'robot'
+      .forAll qc.pick('car', 'robot'), qc.procedure class Transformer
+        constructor: ($args) ->
+          @state = $args[0]
+        carMode: ->
+          @state = 'car'
+        robotMode: ->
+          @state = 'robot'
+        $final: ->
+          @state
   it '#odd returns true for odd numbers', ->
     odd = (num) -> num % 2 == 1
     expect((i) -> odd(2 * i + 1)).not.forAll(qc.int)
