@@ -79,10 +79,10 @@ module.exports = qc if module?
 # ### Basic generators
 
 # Generates a random boolean.
-qc.bool =  -> qc.choose(true, false)
+qc.bool = (size) -> qc.choose(true, false)
 
 # Generates a random integer between 0 and 255.
-qc.byte = -> Math.floor(qc.random() * 256)
+qc.byte = (size) -> Math.floor(qc.random() * 256)
 
 
 # Generates random objects by calling the constructor with random arguments.
@@ -143,28 +143,29 @@ qc.except =  (generator, values...) ->
 
 # ### Number generators
 
+adjust = (size) -> if size < 1 then Math.abs(size) + 1 else size
 # Almost all number generators have a large variant for generating larger numbers,
 # as the standard generators tend not to generate numbers bigger than 10,000. The
 # generators prefixed with `u` generate only positive numbers.
-qc.intUpto =  (size) -> Math.floor(qc.random() * size)
+qc.intUpto =  (size) -> Math.floor(qc.random() * adjust size)
 
-qc.ureal = (size) -> qc.random() * size * size
-qc.ureal.large = -> qc.random() * Number.MAX_VALUE
+qc.ureal = (size) -> qc.random() * adjust(size * size)
+qc.ureal.large = (size) -> qc.random() * Number.MAX_VALUE
 
 qc.real =  (size) -> qc.choose(1, -1) * qc.ureal(size)
-qc.real.large = -> qc.choose(1, -1) * qc.ureal.large()
+qc.real.large = (size) -> qc.choose(1, -1) * qc.ureal.large()
 
-qc.uint = (size) -> qc.intUpto(size * size)
-qc.uint.large = -> Math.floor(qc.random() * Number.MAX_VALUE)
+qc.uint = (size) -> qc.intUpto(adjust size * size)
+qc.uint.large = (size) -> Math.floor(qc.random() * Number.MAX_VALUE)
 
-qc.int = (size) -> qc.choose(1, -1) * qc.intUpto(size)
-qc.int.large = -> qc.choose(1, -1) * qc.uint.large()
+qc.int = (size) -> qc.choose(1, -1) * qc.intUpto(adjust size)
+qc.int.large = (size) -> qc.choose(1, -1) * qc.uint.large()
 qc.int.between = (min, max) ->
   (size) ->
-    min + qc.intUpto(Math.min(max + 1 - min, size))
+    min + qc.intUpto(Math.min(max + 1 - min, adjust size))
 
-qc.natural = (size) -> qc.intUpto(size * size) + 1
-qc.natural.large = -> Math.ceil(qc.random() * Number.MAX_VALUE)
+qc.natural = (size) -> qc.intUpto(adjust size * size) + 1
+qc.natural.large = (size) -> Math.ceil(qc.random() * Number.MAX_VALUE)
 
 # Range generators will generate an array of two numbers where the second is
 # guaranteed to be larger than the first. i.e.
@@ -195,36 +196,93 @@ qc.range.inclusive = (gen = qc.real) ->
 #     qc.dice('2d6') == ->
 #       Math.ceil(qc.random() * 6) + Math.ceil(qc.random() * 6)
 qc.dice = (config) ->
-  new Function (config.split(/\s*\+\s*/).reduce (code, arg) ->
-    if match = arg.match(/(\d*)d(\d+)/)
-      num = parseInt(match[1], 10) or 1
-      max = parseInt match[2], 10
-      if num < 5
-        str = ''
-        str += " + Math.ceil(qc.random() * #{max})" for i in [1..num]
-        code + str
-      else # we do not want to inline this loop
-        code + " + (function() {
-          var sum = 0;
-          for (var i = 0; i < #{num}; i++) {
-            sum += Math.ceil(qc.random() * #{max});
-          }
-          return sum;
-        })()"
-    else
-      code + " + #{parseInt(arg)}"
-  , 'return ') + ';'
+  toks = config.trim()
+  code = ''
+  isConditional = no
+  declaration = no
+  consume = (n) -> toks = toks.substring(n)
+  while toks.length > 0
+    token = toks[0]
+    switch
+      when token is '+' then code += ' + '
+      when token is '-' then code += ' - '
+      when token is '*' then code += ' * '
+      when token is '/' then throw new Error 'Division is currently not supported'
+      when token is ' ' then code
+      when token is '(' then code += '('
+      when token is ')' then code += ')'
+      when token is '?'
+        isConditional = yes
+        code += ' > 0 ? '
+      when token is ':' and isConditional
+        isConditional = no
+        code += ' : '
+      when match = toks.match(/^(\d*)d(\d+)/)
+        num = parseInt(match[1], 10) or 1
+        max = parseInt match[2], 10
+        consume match[0].length - 1
+        if num < 5
+          code += '(' + ("Math.ceil(qc.random() * #{max})" for i in [1..num]).join(' + ') + ')'
+        else # we do not want to inline this loop
+          declaration = yes
+          code += "d(#{num}, #{max})"
+      when match = toks.match(/^(\d*)F/)
+        num = parseInt(match[1], 10) or 1
+        consume match[0].length - 1
+        code += "(qc.random() <= #{Math.pow(0.5, num)} ? 1 : 0)"
+      when match = toks.match(/^\d+/)
+        num = parseInt(match[0], 10)
+        consume match[0].length - 1
+        code += num
+      else
+        throw new Error "Unexpected token '#{token}'."
+    consume 1
+  if declaration
+    new Function """
+      function d(num, max) {
+        var sum = 0;
+        for (var i = 0; i < num; i++) {
+          sum += Math.ceil(qc.random() * max);
+        }
+        return sum;
+      }
+
+      return #{code};
+    """
+  else
+    new Function "return #{code};"
 
 # ### Array generators
-
-# `qc.arrayOf(generator)` will return a random generator, which will generate
+normalizeOptions = (options = {}) ->
+  length: if options.length?
+    if typeof options.length is 'function'
+      options.length
+    else
+      -> options.length
+  else
+    qc.intUpto
+# `qc.arrayOf(generator, options={})` will return a random generator, which will generate
 # an array from that generator.
-qc.arrayOf =  (generator) ->
+#
+# options can have (currently) a single key:
+# `length`: should be a generator (or a constant number) that specifies how many elements
+# should the array have
+qc.arrayOf =  (generator, options = {}) ->
   (size) ->
-    generator(i) for i in [0..qc.intUpto(size)]
+    generator(i) for i in [0..normalizeOptions(options).length(size)]
 
 # `qc.array` will generate a random array of any type.
 qc.array = (size) -> qc.arrayOf(qc.any)(if size > 1 then size - 1 else 0)
+
+# `qc.array.subsetOf(array, options)` will return a random generator that will generate
+# a subset of an array.
+#
+# For example `qc.array.subsetOf([1,2,3,4])(size)` could yield `[3, 1]`.
+qc.array.subsetOf = (array, options = {}) ->
+  options.length ?= qc.intUpto array.length
+  (size) ->
+    copy = array.slice()
+    copy.splice(qc.intUpto(copy.length), 1)[0] for i in [0..normalizeOptions(options).length(size)]
 
 # ### Function generators
 
@@ -288,37 +346,73 @@ arraysEqual = (a1, a2) ->
 #
 # As an example, we give a procedure to draw a random image into the canvas
 #
-#     drawCanvas = qc.procedure () ->
-#       t1 = qc.intUpto @w
-#       t2 = qc.intUpto @h
-#       @ctx.lineTo t1, t2
-#     , () ->
-#       @ctx.fillStyle = qc.color(@size)
-#       @ctx.fill()
-#     , () ->
-#       @ctx.strokeStyle = qc.color(@size)
-#       @ctx.stroke()
-#     , () ->
-#       @ctx.closePath()
-#     , () ->
-#       t1 = qc.intUpto @w
-#       t2 = qc.intUpto @h
-#       @ctx.moveTo @w, @h
+#     canvas = qc.procedure class Canvas
+#       # Constructor gets called only once
+#       constructor: ($args) ->
+#         @canvas = document.createElement('canvas')
+#         @canvas.width = @width = $args[0]
+#         @canvas.height = @height = $args[1]
+#         @ctx = canvas.getContext('2d')
+#       # A function can have basic types injected
+#       lineTo: (uint1, uint2) ->
+#         @ctx.lineTo Math.max(uint1, @width), Math.max(uint2, @height)
+#       # A $final method will only be called once and its return value
+#       # will be the return value of the procedure.
+#       $final: ->
+#         @canvas.toDataURL()
 #
-#     randomPNGDataURL = (size) ->
-#       canvas = document.createElement('canvas')
-#       canvas.width = w = 4 * qc.intUpto size
-#       canvas.height = h = 4 * qc.intUpto size
-#       drawCanvas(size)({ctx: canvas.getContext('2d'), w, h})
-#       canvas.toDataURL()
-qc.procedure = (steps...) ->
+#     expect (drawCanvas) ->
+#       isValidPng(drawCanvas(100, 100))
+#     .forAll canvas
+qc.procedure = (obj, injectorConfig = {}) ->
+  FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+  FN_ARG_SPLIT = /,/
+  FN_ARG = /^\s*(\S+?)\s*$/
+  STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg
+  extractArgs = (fn) ->
+    args = fn.toString().replace(STRIP_COMMENTS, '').match(FN_ARGS)
+    if args
+      argName.match(FN_ARG)[1] for argName in args[1].split(FN_ARG_SPLIT) when argName isnt ''
+
+  fnKeys = (obj) -> key for key, val of obj when key isnt '$final' and (typeof val is 'function' or typeof val is 'object' and val.length and typeof val[val.length - 1] is 'function')
+
+  getGenerators = (injector, obj, prefix) ->
+    for own key, fn of obj
+      if typeof fn is 'function' and fn.length is 1 and extractArgs(fn)[0] is 'size'
+        injector[prefix + key] = fn
+      getGenerators injector, fn, prefix + key + '_'
+    return
+
+  initializeInjector = (injectorConfig) ->
+    injector = {}
+    getGenerators injector, qc, ''
+    injector[key] = val for key, val of injectorConfig
+    injector
+
   (size) ->
-    execution = qc.arrayOf(qc.pick steps)(size)
-    (globals) ->
-      globals.size = size
-      execution.reduce (prevVals, fn) ->
-        fn.apply(globals, prevVals)
-      , []
+    injector = initializeInjector(injectorConfig)
+    invoke = (key, args) ->
+      injectors = []
+      injector.$args = -> args
+      fn = ->
+      if typeof obj[key] is 'function'
+        fn = obj[key]
+        if obj[key].$inject?
+          injectors = obj[key].$inject?
+        else
+          injectors = (injector[name.replace(/\d+$/, '')] for name in extractArgs(obj[key]))
+      else
+        fn = obj[key][obj[key].length - 1]
+        injectors = obj[key].slice(0, -1)
+      fn.apply(obj, gen(size) for gen in injectors)
+
+
+    (args...) ->
+      obj = if typeof obj is 'function' then new obj(args) else obj
+      steps = fnKeys obj
+      execution = qc.arrayOf(qc.pick steps)(size)
+      invoke(key, args) for key in execution
+      if obj.$final then invoke('$final', args) else undefined
 
 # ### Object generators
 
@@ -344,11 +438,11 @@ qc.objectLike = (template) ->
     result
 
 # `qc.objectOf` generates an object containing the passed type as its values.
-qc.objectOf =  (generator) ->
+qc.objectOf =  (generator, keygen = qc.string) ->
   (size) ->
     result = {}
     for i in [0..qc.intUpto(size)]
-      result[qc.string(size)] = generator(i)
+      result[keygen(size)] = generator(i)
     result
 
 # `qc.object` generates an object containing random types
@@ -357,7 +451,7 @@ qc.object = (size) -> qc.objectOf(qc.any)(size)
 # ### String generators
 
 # `qc.char` will return a random string with a single chararcter.
-qc.char =  -> String.fromCharCode(qc.byte())
+qc.char = (size) -> String.fromCharCode(qc.byte())
 
 # `qc.string` will generate a string of random charachters.
 qc.string = (size) ->
@@ -492,7 +586,10 @@ generatorForPattern = (toks, caseInsensitive, captures, captureLevel) ->
       gens.push(generator.dot)
     else if token is '*'
       # We implement lazy repeaters as generating shorter strings on average.
+      # This is not really correct, as a lazy repeater should guarentee that
+      # the string generated does not include what's after.
       if toks[0] == '?'
+        console.log "Lazy repeaters may provide incorrect results"
         toks.shift()
         gens.push(generator.repeat(gens.pop(), 0, 10))
       else
@@ -501,6 +598,7 @@ generatorForPattern = (toks, caseInsensitive, captures, captureLevel) ->
       gens.push(generator.repeat(gens.pop(), 0, 1))
     else if token is '+'
       if toks[0] == '?'
+        console.log "Lazy repeaters may provide incorrect results"
         toks.shift()
         gens.push(generator.repeat(gens.pop(), 1, 10))
       else
@@ -587,7 +685,15 @@ qc.string.matching = (pattern) ->
 # ### Misc generators
 
 # qc.date will generate a random date
-qc.date =  qc.constructor Date, qc.uint.large
+qc.date = (size) ->
+  y = qc.intUpto 3000
+  m = qc.intUpto 12
+  d = qc.intUpto if m in [0, 2, 4, 6, 7, 9, 11] then 31 else if m in [3, 5, 8, 10] then 30 else 28
+  hh = qc.intUpto 24
+  mm = qc.intUpto 60
+  ss = qc.intUpto 60
+  ms = qc.intUpto 1000
+  new Date y, m, d, hh, mm, ss, ms
 
 # qc.any will generate a value of any type. For performance reasons there is a bias
 # towards simpler types with the following approx. distribution:
@@ -613,7 +719,7 @@ qc.any.datatype = qc.oneOf qc.bool, qc.int, qc.real, qc.string, qc.pick(undefine
 qc.color = qc.string.matching(/^\#([A-F\d]{6}|[A-F\d]{3})$/i)
 
 # Location calculates a random lat, long pair on the surface of the Earth.
-qc.location = ->
+qc.location = (size) ->
   rad2deg = (n) -> 360 * n / (2 * Math.PI)
   x = qc.random() * 2 * Math.PI - Math.PI
   y = Math.PI / 2 - Math.acos(qc.random() * 2 - 1)
