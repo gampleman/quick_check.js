@@ -113,7 +113,7 @@ the generators passed to it and then concatenate them into a single string.
 ### `qc.string.matching`
 This will generate a string matching the regexp passed to it.
 
-### Array generators
+## Array generators
 
 ### `qc.arrayOf`
 `qc.arrayOf(generator, options = {})` will return a random generator, which will generate
