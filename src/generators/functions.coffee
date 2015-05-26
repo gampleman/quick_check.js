@@ -105,7 +105,7 @@ qc.procedure = (obj, injectorConfig = {}) ->
 
   (size) ->
     injector = initializeInjector(injectorConfig)
-    invoke = (key, args) ->
+    invoke = (key, args, obj, result) ->
       injectors = []
       injector.$args = -> args
       fn = ->
@@ -118,12 +118,28 @@ qc.procedure = (obj, injectorConfig = {}) ->
       else
         fn = obj[key][obj[key].length - 1]
         injectors = obj[key].slice(0, -1)
-      fn.apply(obj, gen(size) for gen in injectors)
+      fnarguments = (gen(size) for gen in injectors)
+      result.trace.push({key, args: fnarguments})
+      fn.apply(obj, fnarguments)
 
-
-    (args...) ->
-      obj = if typeof obj is 'function' then new obj(args) else obj
-      steps = fnKeys obj
+    result = (args...) ->
+      result.trace = []
+      result.classMode = typeof obj is 'function'
+      callee = if typeof obj is 'function' then new obj(args) else obj
+      steps = fnKeys callee
       execution = qc.arrayOf(qc.pick steps)(size)
-      invoke(key, args) for key in execution
-      if obj.$final then invoke('$final', args) else undefined
+      invoke(key, args, callee, result) for key in execution
+      if callee.$final then invoke('$final', args, callee, result) else undefined
+
+    result.toString = ->
+      code = []
+      name = obj.name || injector.name || 'Api'
+      if result.classMode
+        code.push "var obj = new #{name}(arguments);"
+        name = 'obj'
+      for {key, args} in result.trace
+        ret = if key is '$final' then 'return ' else ''
+        code.push "#{ret}#{name}.#{key}(#{(JSON.stringify(arg) for arg in args).join(', ')});"
+
+      "function() {\n  #{code.join('\n  ')}\n}"
+    result
