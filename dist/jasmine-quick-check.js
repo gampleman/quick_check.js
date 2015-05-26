@@ -25,7 +25,7 @@ qc = function() {
       return {
         pass: false,
         examples: examples,
-        message: "Falsified after " + i + " attempts" + skippedString + ". Counter-example: " + (stringify(examples, generators))
+        message: "Falsified after " + (i + 1) + " attempt" + (i === 0 ? '' : 's') + skippedString + ". Counter-example: " + (stringify(examples, generators))
       };
     }
     if (result === void 0) {
@@ -145,7 +145,7 @@ qc.arrayOf = function(generator, options) {
   return function(size) {
     var i, _i, _ref, _results;
     _results = [];
-    for (i = _i = 0, _ref = normalizeOptions(options).length(size); 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+    for (i = _i = 0, _ref = normalizeOptions(options).length(size); 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
       _results.push(generator(i));
     }
     return _results;
@@ -167,7 +167,7 @@ qc.array.subsetOf = function(array, options) {
     var copy, i, _i, _ref, _results;
     copy = array.slice();
     _results = [];
-    for (i = _i = 0, _ref = normalizeOptions(options).length(size); 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+    for (i = _i = 0, _ref = normalizeOptions(options).length(size); 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
       _results.push(copy.splice(qc.intUpto(copy.length), 1)[0]);
     }
     return _results;
@@ -429,10 +429,10 @@ qc.procedure = function(obj, injectorConfig) {
     return injector;
   };
   return function(size) {
-    var injector, invoke;
+    var injector, invoke, result;
     injector = initializeInjector(injectorConfig);
-    invoke = function(key, args) {
-      var fn, gen, injectors, name;
+    invoke = function(key, args, obj, result) {
+      var fn, fnarguments, gen, injectors, name;
       injectors = [];
       injector.$args = function() {
         return args;
@@ -458,7 +458,7 @@ qc.procedure = function(obj, injectorConfig) {
         fn = obj[key][obj[key].length - 1];
         injectors = obj[key].slice(0, -1);
       }
-      return fn.apply(obj, (function() {
+      fnarguments = (function() {
         var _i, _len, _results;
         _results = [];
         for (_i = 0, _len = injectors.length; _i < _len; _i++) {
@@ -466,24 +466,56 @@ qc.procedure = function(obj, injectorConfig) {
           _results.push(gen(size));
         }
         return _results;
-      })());
+      })();
+      result.trace.push({
+        key: key,
+        args: fnarguments
+      });
+      return fn.apply(obj, fnarguments);
     };
-    return function() {
-      var args, execution, key, steps, _i, _len;
+    result = function() {
+      var args, callee, execution, key, steps, _i, _len;
       args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      obj = typeof obj === 'function' ? new obj(args) : obj;
-      steps = fnKeys(obj);
+      result.trace = [];
+      result.classMode = typeof obj === 'function';
+      callee = typeof obj === 'function' ? new obj(args) : obj;
+      steps = fnKeys(callee);
       execution = qc.arrayOf(qc.pick(steps))(size);
       for (_i = 0, _len = execution.length; _i < _len; _i++) {
         key = execution[_i];
-        invoke(key, args);
+        invoke(key, args, callee, result);
       }
-      if (obj.$final) {
-        return invoke('$final', args);
+      if (callee.$final) {
+        return invoke('$final', args, callee, result);
       } else {
         return void 0;
       }
     };
+    result.toString = function() {
+      var arg, args, code, key, name, ret, _i, _len, _ref, _ref1;
+      code = [];
+      name = obj.name || injector.name || 'Api';
+      if (result.classMode) {
+        code.push("var obj = new " + name + "(arguments);");
+        name = 'obj';
+      }
+      _ref = result.trace;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        _ref1 = _ref[_i], key = _ref1.key, args = _ref1.args;
+        ret = key === '$final' ? 'return ' : '';
+        code.push("" + ret + name + "." + key + "(" + (((function() {
+          var _j, _len1, _results;
+          _results = [];
+          for (_j = 0, _len1 = args.length; _j < _len1; _j++) {
+            arg = args[_j];
+            _results.push(JSON.stringify(arg));
+          }
+          return _results;
+        })()).join(', ')) + ");");
+      }
+      return "function() {\n  " + (code.join('\n  ')) + "\n}";
+    };
+    return result;
   };
 };
 
