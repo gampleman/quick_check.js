@@ -18,7 +18,7 @@ qc = (prop, generators...) ->
       return {
         pass: no,
         examples: examples,
-        message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+        message: "Falsified after #{i + 1} attempt#{if i == 0 then '' else 's'}#{skippedString}. Counter-example: #{stringify(examples, generators)}"
       }
     if result == undefined
       num++; skipped++

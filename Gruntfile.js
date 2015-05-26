@@ -42,7 +42,9 @@ module.exports = function (grunt) {
         }
       },
       spec: {
-        files: {'spec/quick_check_spec.js': 'spec/quick_check_spec.coffee'}
+        files: {
+          'spec/quick_check_spec.js': 'spec/*.coffee'
+        }
       }
     },
 

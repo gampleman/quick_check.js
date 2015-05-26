@@ -4,7 +4,7 @@ adjust = (size) -> if size < 1 then Math.abs(size) + 1 else size
 # Almost all number generators have a large variant for generating larger numbers,
 # as the standard generators tend not to generate numbers bigger than 10,000. The
 # generators prefixed with `u` generate only positive numbers.
-qc.intUpto =  (size) -> Math.floor(qc.random() * adjust size)
+qc.intUpto = (size) -> Math.floor(qc.random() * adjust size)
 
 qc.ureal = (size) -> qc.random() * adjust(size * size)
 qc.ureal.large = (size) -> qc.random() * Number.MAX_VALUE

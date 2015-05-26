@@ -45,22 +45,17 @@ describe "uniqueId", ->
     expect(->
       uniqueId() isnt uniqueId()
     ).forAll()
-    return
-
-  return
 
 describe "hashKey", ->
   it "can turn anything into a string", ->
     expect((anything) ->
       typeof hashKey(anything) is "string"
     ).forAll qc.any
-    return
 
   it "any object will produce the same hash key", ->
     expect((anything) ->
       hashKey(anything) is hashKey(anything)
     ).forAll qc.any
-    return
 
   it "same object will have the same hash key even after modificatoin", ->
     expect((obj, key, val) ->
@@ -68,9 +63,6 @@ describe "hashKey", ->
       obj[key] = val
       hashKey(obj) is origKey
     ).forAll qc.object, qc.string, qc.any
-    return
-
-  return
 
 describe "HashMap", ->
   it "a value stored can be retrieved", ->
@@ -78,7 +70,6 @@ describe "HashMap", ->
       hm.put key, val
       hm.get(key) is val
     ).forAll hashMaps, qc.any, qc.any
-    return
 
   it "a value stored can be deleted", ->
     expect((hm, key, val) ->
@@ -86,13 +77,9 @@ describe "HashMap", ->
       hm.remove key
       hm.get(key) is `undefined`
     ).forAll hashMaps, qc.any, qc.any
-    return
 
   it "a delete returns original value", ->
     expect((hm, key, val) ->
       hm.put key, val
       hm.remove(key) is val
     ).forAll hashMaps, qc.any, qc.any
-    return
-
-  return

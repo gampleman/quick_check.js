@@ -15,7 +15,7 @@ normalizeOptions = (options = {}) ->
 # should the array have
 qc.arrayOf =  (generator, options = {}) ->
   (size) ->
-    generator(i) for i in [0..normalizeOptions(options).length(size)]
+    generator(i) for i in [0...normalizeOptions(options).length(size)]
 
 # `qc.array` will generate a random array of any type.
 qc.array = (size) -> qc.arrayOf(qc.any)(if size > 1 then size - 1 else 0)
@@ -28,4 +28,4 @@ qc.array.subsetOf = (array, options = {}) ->
   options.length ?= qc.intUpto array.length
   (size) ->
     copy = array.slice()
-    copy.splice(qc.intUpto(copy.length), 1)[0] for i in [0..normalizeOptions(options).length(size)]
+    copy.splice(qc.intUpto(copy.length), 1)[0] for i in [0...normalizeOptions(options).length(size)]
