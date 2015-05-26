@@ -18,7 +18,7 @@ qc = (prop, generators...) ->
       return {
         pass: no,
         examples: examples,
-        message: "Falsified after #{i} attempts#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+        message: "Falsified after #{i + 1} attempt#{if i == 0 then '' else 's'}#{skippedString}. Counter-example: #{stringify(examples, generators)}"
       }
     if result == undefined
       num++; skipped++
@@ -84,7 +84,6 @@ qc.bool = (size) -> qc.choose(true, false)
 # Generates a random integer between 0 and 255.
 qc.byte = (size) -> Math.floor(qc.random() * 256)
 
-
 # Generates random objects by calling the constructor with random arguments.
 qc.constructor = (cons, arggens...) ->
   (size) ->
@@ -147,7 +146,7 @@ adjust = (size) -> if size < 1 then Math.abs(size) + 1 else size
 # Almost all number generators have a large variant for generating larger numbers,
 # as the standard generators tend not to generate numbers bigger than 10,000. The
 # generators prefixed with `u` generate only positive numbers.
-qc.intUpto =  (size) -> Math.floor(qc.random() * adjust size)
+qc.intUpto = (size) -> Math.floor(qc.random() * adjust size)
 
 qc.ureal = (size) -> qc.random() * adjust(size * size)
 qc.ureal.large = (size) -> qc.random() * Number.MAX_VALUE
@@ -269,7 +268,7 @@ normalizeOptions = (options = {}) ->
 # should the array have
 qc.arrayOf =  (generator, options = {}) ->
   (size) ->
-    generator(i) for i in [0..normalizeOptions(options).length(size)]
+    generator(i) for i in [0...normalizeOptions(options).length(size)]
 
 # `qc.array` will generate a random array of any type.
 qc.array = (size) -> qc.arrayOf(qc.any)(if size > 1 then size - 1 else 0)
@@ -282,7 +281,7 @@ qc.array.subsetOf = (array, options = {}) ->
   options.length ?= qc.intUpto array.length
   (size) ->
     copy = array.slice()
-    copy.splice(qc.intUpto(copy.length), 1)[0] for i in [0..normalizeOptions(options).length(size)]
+    copy.splice(qc.intUpto(copy.length), 1)[0] for i in [0...normalizeOptions(options).length(size)]
 
 # ### Function generators
 
@@ -391,7 +390,7 @@ qc.procedure = (obj, injectorConfig = {}) ->
 
   (size) ->
     injector = initializeInjector(injectorConfig)
-    invoke = (key, args) ->
+    invoke = (key, args, obj, result) ->
       injectors = []
       injector.$args = -> args
       fn = ->
@@ -404,15 +403,31 @@ qc.procedure = (obj, injectorConfig = {}) ->
       else
         fn = obj[key][obj[key].length - 1]
         injectors = obj[key].slice(0, -1)
-      fn.apply(obj, gen(size) for gen in injectors)
+      fnarguments = (gen(size) for gen in injectors)
+      result.trace.push({key, args: fnarguments})
+      fn.apply(obj, fnarguments)
 
-
-    (args...) ->
-      obj = if typeof obj is 'function' then new obj(args) else obj
-      steps = fnKeys obj
+    result = (args...) ->
+      result.trace = []
+      result.classMode = typeof obj is 'function'
+      callee = if typeof obj is 'function' then new obj(args) else obj
+      steps = fnKeys callee
       execution = qc.arrayOf(qc.pick steps)(size)
-      invoke(key, args) for key in execution
-      if obj.$final then invoke('$final', args) else undefined
+      invoke(key, args, callee, result) for key in execution
+      if callee.$final then invoke('$final', args, callee, result) else undefined
+
+    result.toString = ->
+      code = []
+      name = obj.name || injector.name || 'Api'
+      if result.classMode
+        code.push "var obj = new #{name}(arguments);"
+        name = 'obj'
+      for {key, args} in result.trace
+        ret = if key is '$final' then 'return ' else ''
+        code.push "#{ret}#{name}.#{key}(#{(JSON.stringify(arg) for arg in args).join(', ')});"
+
+      "function() {\n  #{code.join('\n  ')}\n}"
+    result
 
 # ### Object generators
 

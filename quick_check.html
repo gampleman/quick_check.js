@@ -48,7 +48,7 @@ if a string is returned we classify the tests based on the returned string.</p>
       <span class="hljs-keyword">return</span> {
         <span class="hljs-attribute">pass</span>: <span class="hljs-literal">no</span>,
         <span class="hljs-attribute">examples</span>: examples,
-        <span class="hljs-attribute">message</span>: <span class="hljs-string">"Falsified after <span class="hljs-subst">#{i}</span> attempts<span class="hljs-subst">#{skippedString}</span>. Counter-example: <span class="hljs-subst">#{stringify(examples, generators)}</span>"</span>
+        <span class="hljs-attribute">message</span>: <span class="hljs-string">"Falsified after <span class="hljs-subst">#{i + <span class="hljs-number">1</span>}</span> attempt<span class="hljs-subst">#{<span class="hljs-keyword">if</span> i == <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-string">''</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'s'</span>}</span><span class="hljs-subst">#{skippedString}</span>. Counter-example: <span class="hljs-subst">#{stringify(examples, generators)}</span>"</span>
       }
     <span class="hljs-keyword">if</span> result == <span class="hljs-literal">undefined</span>
       num++; skipped++
@@ -97,10 +97,8 @@ sorted list with percentages of values that went there.</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">makeHistogram</span> = <span class="hljs-params">(hist, total)</span> -&gt;</span>
   hist = ({label, count} <span class="hljs-keyword">for</span> label, count <span class="hljs-keyword">of</span> hist)
-  hist.sort <span class="hljs-function"><span class="hljs-params">({count: a}, {count: b})</span> -&gt;</span> a - b
-  <span class="hljs-string">"\n"</span> + hist.map<span class="hljs-function"><span class="hljs-params">(({label, count}) -&gt; <span class="hljs-string">"<span class="hljs-subst">#{((count / total) * <span class="hljs-number">100</span>).toFixed(<span class="hljs-number">2</span>)}</span>% <span class="hljs-subst">#{label}</span>"</span>)</span>.<span class="hljs-title">join</span><span class="hljs-params">(<span class="hljs-string">"\n"</span>)</span>
-
-</span></pre></div></div>
+  hist.sort ({<span class="hljs-attribute">count</span>: a}, {<span class="hljs-attribute">count</span>: b}) -&gt; a - b
+  <span class="hljs-string">"\n"</span> + hist.map(<span class="hljs-function"><span class="hljs-params">({label, count})</span> -&gt;</span> <span class="hljs-string">"<span class="hljs-subst">#{((count / total) * <span class="hljs-number">100</span>).toFixed(<span class="hljs-number">2</span>)}</span>% <span class="hljs-subst">#{label}</span>"</span>).join(<span class="hljs-string">"\n"</span>)</pre></div></div>
             
         </li>
         
@@ -117,8 +115,8 @@ ignored. This is useful with seperate expectations:</p>
 </code></pre>
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">forAll</span> = <span class="hljs-params">(generators..., prop)</span> -&gt;</span>
-  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.<span class="hljs-number">.100</span>]
+            <div class="content"><div class='highlight'><pre>qc.forAll = <span class="hljs-function"><span class="hljs-params">(generators..., prop)</span> -&gt;</span>
+  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-number">100</span>]
     examples = (generator(i) <span class="hljs-keyword">for</span> generator <span class="hljs-keyword">in</span> generators)
     prop(examples...)
   <span class="hljs-keyword">return</span></pre></div></div>
@@ -158,7 +156,7 @@ use of a custom generator.</p>
 <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">window</span>?
   <span class="hljs-built_in">window</span>.qc = qc
 
-<span class="hljs-built_in">module</span>.<span class="hljs-built_in">exports</span> = qc <span class="hljs-keyword">if</span> <span class="hljs-built_in">module</span>?</pre></div></div>
+<span class="hljs-built_in">module</span>.exports = qc <span class="hljs-keyword">if</span> <span class="hljs-built_in">module</span>?</pre></div></div>
             
         </li>
         
@@ -215,7 +213,7 @@ Finally these generators can be used as examples how to write your own generator
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">bool</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.bool = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>)</pre></div></div>
             
         </li>
         
@@ -230,7 +228,7 @@ Finally these generators can be used as examples how to write your own generator
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">byte</span> = <span class="hljs-params">(size)</span> -&gt;</span> Math.floor(qc.random() * <span class="hljs-number">256</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.byte = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> Math.floor(qc.random() * <span class="hljs-number">256</span>)</pre></div></div>
             
         </li>
         
@@ -245,8 +243,8 @@ Finally these generators can be used as examples how to write your own generator
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">constructor</span> = <span class="hljs-params">(cons, arggens...)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.constructor = <span class="hljs-function"><span class="hljs-params">(cons, arggens...)</span> -&gt;</span>
+  (size) -&gt;
     args = (arggen(size - <span class="hljs-number">1</span>) <span class="hljs-keyword">for</span> arggen <span class="hljs-keyword">in</span> arggens)
     <span class="hljs-keyword">new</span> cons(args...)</pre></div></div>
             
@@ -263,8 +261,8 @@ Finally these generators can be used as examples how to write your own generator
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">fromFunction</span> = <span class="hljs-params">(fun, arggens...)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.fromFunction = <span class="hljs-function"><span class="hljs-params">(fun, arggens...)</span> -&gt;</span>
+  (size) -&gt;
     args = (arggen(size - <span class="hljs-number">1</span>) <span class="hljs-keyword">for</span> arggen <span class="hljs-keyword">in</span> arggens)
     fun(args...)</pre></div></div>
             
@@ -281,11 +279,11 @@ Finally these generators can be used as examples how to write your own generator
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">pick</span> =  <span class="hljs-params">(range...)</span> -&gt;</span>
-  range = range[<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> arguments.length ==  <span class="hljs-number">1</span><span class="hljs-function">
-  -&gt;</span> range[Math.floor(qc.random() * range.length)]
+            <div class="content"><div class='highlight'><pre>qc.pick =  <span class="hljs-function"><span class="hljs-params">(range...)</span> -&gt;</span>
+  range = range[<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> arguments.length ==  <span class="hljs-number">1</span>
+  -&gt; range[Math.floor(qc.random() * range.length)]
 
-qc.<span class="hljs-function"><span class="hljs-title">choose</span> =  <span class="hljs-params">(range...)</span> -&gt;</span> qc.pick(range...)()</pre></div></div>
+qc.choose =  <span class="hljs-function"><span class="hljs-params">(range...)</span> -&gt;</span> qc.pick(range...)()</pre></div></div>
             
         </li>
         
@@ -318,8 +316,8 @@ stringOrNumber(size) <span class="hljs-comment"># 5.54</span>
 </code></pre>
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">oneOf</span> =  <span class="hljs-params">(generators...)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.oneOf =  <span class="hljs-function"><span class="hljs-params">(generators...)</span> -&gt;</span>
+  (size) -&gt;
     qc.choose(generators...)(size)</pre></div></div>
             
         </li>
@@ -336,8 +334,8 @@ used for optimizing cases for simpler generators. See <code>qc.any</code> for an
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">oneOfByPriority</span> = <span class="hljs-params">(generators...)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.oneOfByPriority = <span class="hljs-function"><span class="hljs-params">(generators...)</span> -&gt;</span>
+  (size) -&gt;
     gindex = Math.floor((<span class="hljs-number">1</span> - Math.sqrt(qc.random())) * generators.length)
     generators[gindex](size)</pre></div></div>
             
@@ -362,9 +360,9 @@ implementation might be better (e.g. the string generator does this).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">except</span> =  <span class="hljs-params">(generator, values...)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-title">anyMatches</span> = <span class="hljs-params">(expect)</span> -&gt;</span> <span class="hljs-keyword">return</span> (<span class="hljs-literal">true</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> values <span class="hljs-keyword">when</span> v <span class="hljs-keyword">is</span> expect).length &gt; <span class="hljs-number">0</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.except =  <span class="hljs-function"><span class="hljs-params">(generator, values...)</span> -&gt;</span>
+<span class="hljs-function">  <span class="hljs-title">anyMatches</span> = <span class="hljs-params">(expect)</span> -&gt;</span> <span class="hljs-keyword">return</span> (<span class="hljs-literal">true</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> values <span class="hljs-keyword">when</span> v <span class="hljs-keyword">is</span> expect).length &gt; <span class="hljs-number">0</span>
+  (size) -&gt;
     <span class="hljs-keyword">loop</span>
       value = generator(size)
       <span class="hljs-keyword">return</span> value <span class="hljs-keyword">unless</span> anyMatches value</pre></div></div>
@@ -382,8 +380,8 @@ implementation might be better (e.g. the string generator does this).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>
-<span class="hljs-function"><span class="hljs-title">adjust</span> = <span class="hljs-params">(size)</span> -&gt;</span> <span class="hljs-keyword">if</span> size &lt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> Math.abs(size) + <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> size</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function">
+<span class="hljs-title">adjust</span> = <span class="hljs-params">(size)</span> -&gt;</span> <span class="hljs-keyword">if</span> size &lt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> Math.abs(size) + <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> size</pre></div></div>
             
         </li>
         
@@ -400,25 +398,25 @@ generators prefixed with <code>u</code> generate only positive numbers.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">intUpto</span> =  <span class="hljs-params">(size)</span> -&gt;</span> Math.floor(qc.random() * adjust size)
+            <div class="content"><div class='highlight'><pre>qc.intUpto = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> Math.floor(qc.random() * adjust size)
 
-qc.<span class="hljs-function"><span class="hljs-title">ureal</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.random() * adjust(size * size)
-qc.ureal.<span class="hljs-function"><span class="hljs-title">large</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.random() * Number.MAX_VALUE
+qc.ureal = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.random() * adjust(size * size)
+qc.ureal.large = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.random() * Number.MAX_VALUE
 
-qc.<span class="hljs-function"><span class="hljs-title">real</span> =  <span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.ureal(size)
-qc.real.<span class="hljs-function"><span class="hljs-title">large</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.ureal.large()
+qc.real =  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.ureal(size)
+qc.real.large = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.ureal.large()
 
-qc.<span class="hljs-function"><span class="hljs-title">uint</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.intUpto(adjust size * size)
-qc.uint.<span class="hljs-function"><span class="hljs-title">large</span> = <span class="hljs-params">(size)</span> -&gt;</span> Math.floor(qc.random() * Number.MAX_VALUE)
+qc.uint = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.intUpto(adjust size * size)
+qc.uint.large = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> Math.floor(qc.random() * Number.MAX_VALUE)
 
-qc.<span class="hljs-function"><span class="hljs-title">int</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.intUpto(adjust size)
-qc.int.<span class="hljs-function"><span class="hljs-title">large</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.uint.large()
-qc.int.<span class="hljs-function"><span class="hljs-title">between</span> = <span class="hljs-params">(min, max)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+qc.int = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.intUpto(adjust size)
+qc.int.large = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.choose(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>) * qc.uint.large()
+qc.int.between = <span class="hljs-function"><span class="hljs-params">(min, max)</span> -&gt;</span>
+  (size) -&gt;
     min + qc.intUpto(Math.min(max + <span class="hljs-number">1</span> - min, adjust size))
 
-qc.<span class="hljs-function"><span class="hljs-title">natural</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.intUpto(adjust size * size) + <span class="hljs-number">1</span>
-qc.natural.<span class="hljs-function"><span class="hljs-title">large</span> = <span class="hljs-params">(size)</span> -&gt;</span> Math.ceil(qc.random() * Number.MAX_VALUE)</pre></div></div>
+qc.natural = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.intUpto(adjust size * size) + <span class="hljs-number">1</span>
+qc.natural.large = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> Math.ceil(qc.random() * Number.MAX_VALUE)</pre></div></div>
             
         </li>
         
@@ -431,22 +429,22 @@ qc.natural.<span class="hljs-function"><span class="hljs-title">large</span> = <
               </div>
               <p>Range generators will generate an array of two numbers where the second is
 guaranteed to be larger than the first. i.e.</p>
-<pre><code>expect<span class="hljs-function"><span class="hljs-params">(([min, max]) -&gt; min &lt; max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range())</span>
-<span class="hljs-title">expect</span><span class="hljs-params">(([min, max]) -&gt; min &lt;= max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range.inclusive(qc.real))</span>
-<span class="hljs-title">expect</span><span class="hljs-params">(([min, max]) -&gt; <span class="hljs-number">0</span> &lt;= min &lt; max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range(qc.ureal))</span>
-<span class="hljs-title">expect</span><span class="hljs-params">(([min, max]) -&gt; <span class="hljs-number">0</span> &lt; min &lt; max)</span>.<span class="hljs-title">forAll</span><span class="hljs-params">(qc.range(qc.natural))</span></span>
+<pre><code>expect(<span class="hljs-function"><span class="hljs-params">([min, max])</span> -&gt;</span> min &lt; max).forAll(qc.range())
+expect(<span class="hljs-function"><span class="hljs-params">([min, max])</span> -&gt;</span> min &lt;= max).forAll(qc.range.inclusive(qc.real))
+expect(<span class="hljs-function"><span class="hljs-params">([min, max])</span> -&gt;</span> <span class="hljs-number">0</span> &lt;= min &lt; max).forAll(qc.range(qc.ureal))
+expect(<span class="hljs-function"><span class="hljs-params">([min, max])</span> -&gt;</span> <span class="hljs-number">0</span> &lt; min &lt; max).forAll(qc.range(qc.natural))
 </code></pre>
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">range</span> = <span class="hljs-params">(gen = qc.real)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.range = <span class="hljs-function"><span class="hljs-params">(gen = qc.real)</span> -&gt;</span>
+  (size) -&gt;
     start = gen(size)
     end = start + Math.abs(gen(size))
     end += <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> start <span class="hljs-keyword">is</span> end
     [start, end]
 
-qc.range.<span class="hljs-function"><span class="hljs-title">inclusive</span> = <span class="hljs-params">(gen = qc.real)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+qc.range.inclusive = <span class="hljs-function"><span class="hljs-params">(gen = qc.real)</span> -&gt;</span>
+  (size) -&gt;
     start = gen(size)
     [start, start + Math.abs(gen(size))]</pre></div></div>
             
@@ -462,20 +460,20 @@ qc.range.<span class="hljs-function"><span class="hljs-title">inclusive</span> =
               <p>The dice generator takes a D&amp;D style dice string and transforms it into a random
 number generator. This can serve as a very quick method how to quickly approximate
 distributions.</p>
-<pre><code>qc.dice(<span class="hljs-string">'d3'</span>) ==<span class="hljs-function"> -&gt;</span> Math.ceil(qc.random() * <span class="hljs-number">3</span>)
-qc.dice(<span class="hljs-string">'d2 + d4 + 3'</span>) ==<span class="hljs-function"> -&gt;</span>
+<pre><code>qc.dice(<span class="hljs-string">'d3'</span>) == <span class="hljs-function">-&gt;</span> Math.ceil(qc.random() * <span class="hljs-number">3</span>)
+qc.dice(<span class="hljs-string">'d2 + d4 + 3'</span>) == <span class="hljs-function">-&gt;</span>
   Math.ceil(qc.random() * <span class="hljs-number">2</span>) + Math.ceil(qc.random() * <span class="hljs-number">4</span>) + <span class="hljs-number">3</span>
-qc.dice(<span class="hljs-string">'2d6'</span>) ==<span class="hljs-function"> -&gt;</span>
+qc.dice(<span class="hljs-string">'2d6'</span>) == <span class="hljs-function">-&gt;</span>
   Math.ceil(qc.random() * <span class="hljs-number">6</span>) + Math.ceil(qc.random() * <span class="hljs-number">6</span>)
 </code></pre>
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">dice</span> = <span class="hljs-params">(config)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.dice = <span class="hljs-function"><span class="hljs-params">(config)</span> -&gt;</span>
   toks = config.trim()
   code = <span class="hljs-string">''</span>
   isConditional = <span class="hljs-literal">no</span>
   declaration = <span class="hljs-literal">no</span>
-  <span class="hljs-function"><span class="hljs-title">consume</span> = <span class="hljs-params">(n)</span> -&gt;</span> toks = toks.substring(n)
+<span class="hljs-function">  <span class="hljs-title">consume</span> = <span class="hljs-params">(n)</span> -&gt;</span> toks = toks.substring(n)
   <span class="hljs-keyword">while</span> toks.length &gt; <span class="hljs-number">0</span>
     token = toks[<span class="hljs-number">0</span>]
     <span class="hljs-keyword">switch</span>
@@ -544,8 +542,8 @@ qc.dice(<span class="hljs-string">'2d6'</span>) ==<span class="hljs-function"> -
   <span class="hljs-attribute">length</span>: <span class="hljs-keyword">if</span> options.length?
     <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> options.length <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span>
       options.length
-    <span class="hljs-keyword">else</span><span class="hljs-function">
-      -&gt;</span> options.length
+    <span class="hljs-keyword">else</span>
+      -&gt; options.length
   <span class="hljs-keyword">else</span>
     qc.intUpto</pre></div></div>
             
@@ -566,9 +564,9 @@ should the array have</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">arrayOf</span> =  <span class="hljs-params">(generator, options = {})</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
-    generator(i) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.normalizeOptions(options).length(size)]</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.arrayOf =  <span class="hljs-function"><span class="hljs-params">(generator, options = {})</span> -&gt;</span>
+  (size) -&gt;
+    generator(i) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..normalizeOptions(options).length(size)]</pre></div></div>
             
         </li>
         
@@ -583,7 +581,7 @@ should the array have</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">array</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.arrayOf(qc.any)(<span class="hljs-keyword">if</span> size &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> size - <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.array = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.arrayOf(qc.any)(<span class="hljs-keyword">if</span> size &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> size - <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)</pre></div></div>
             
         </li>
         
@@ -600,11 +598,11 @@ a subset of an array.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.array.<span class="hljs-function"><span class="hljs-title">subsetOf</span> = <span class="hljs-params">(array, options = {})</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.array.subsetOf = <span class="hljs-function"><span class="hljs-params">(array, options = {})</span> -&gt;</span>
   options.length ?= qc.intUpto array.length
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+  (size) -&gt;
     copy = array.slice()
-    copy.splice(qc.intUpto(copy.length), <span class="hljs-number">1</span>)[<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.normalizeOptions(options).length(size)]</pre></div></div>
+    copy.splice(qc.intUpto(copy.length), <span class="hljs-number">1</span>)[<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..normalizeOptions(options).length(size)]</pre></div></div>
             
         </li>
         
@@ -645,15 +643,15 @@ readable source code.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">function</span> =  <span class="hljs-params">(args..., returnGenerator)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-title">generator</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-reserved">function</span> =  <span class="hljs-function"><span class="hljs-params">(args..., returnGenerator)</span> -&gt;</span>
+<span class="hljs-function">  <span class="hljs-title">generator</span> = <span class="hljs-params">(size)</span> -&gt;</span>
     generator.calls = []
-    <span class="hljs-function"><span class="hljs-title">result</span> = <span class="hljs-params">(someArgs...)</span> -&gt;</span>
+<span class="hljs-function">    <span class="hljs-title">result</span> = <span class="hljs-params">(someArgs...)</span> -&gt;</span>
       <span class="hljs-keyword">return</span> value <span class="hljs-keyword">for</span> [callArgs..., value] <span class="hljs-keyword">in</span> generator.calls <span class="hljs-keyword">when</span> arraysEqual(callArgs, someArgs)
       value = returnGenerator(size)
       generator.calls.push([someArgs..., value])
       <span class="hljs-keyword">return</span> value
-    result.<span class="hljs-function"><span class="hljs-title">toString</span> = -&gt;</span>
+    result.toString = <span class="hljs-function">-&gt;</span>
       calls = generator.calls
       <span class="hljs-keyword">if</span> calls.length == <span class="hljs-number">0</span>
         <span class="hljs-keyword">return</span> <span class="hljs-string">"function() { return <span class="hljs-subst">#{JSON.stringify returnGenerator(<span class="hljs-number">10</span>)}</span>; }"</span>
@@ -720,46 +718,46 @@ hopefully lift this limitation.</p>
     <span class="hljs-property">@ctx</span>.lineTo Math.max(uint1, <span class="hljs-property">@width</span>), Math.max(uint2, <span class="hljs-property">@height</span>)
   <span class="hljs-comment"># A $final method will only be called once and its return value</span>
   <span class="hljs-comment"># will be the return value of the procedure.</span>
-  <span class="hljs-attribute">$final</span>:<span class="hljs-function"> -&gt;</span>
+  <span class="hljs-attribute">$final</span>: <span class="hljs-function">-&gt;</span>
     <span class="hljs-property">@canvas</span>.toDataURL()
 
-expect <span class="hljs-function"><span class="hljs-params">(drawCanvas)</span> -&gt;</span>
+expect (drawCanvas) -&gt;
   isValidPng(drawCanvas(<span class="hljs-number">100</span>, <span class="hljs-number">100</span>))
 .forAll canvas
 </code></pre>
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">procedure</span> = <span class="hljs-params">(obj, injectorConfig = {})</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.procedure = <span class="hljs-function"><span class="hljs-params">(obj, injectorConfig = {})</span> -&gt;</span>
   FN_ARGS = <span class="hljs-regexp">/^function\s*[^\(]*\(\s*([^\)]*)\)/m</span>;
   FN_ARG_SPLIT = <span class="hljs-regexp">/,/</span>
   FN_ARG = <span class="hljs-regexp">/^\s*(\S+?)\s*$/</span>
   STRIP_COMMENTS = <span class="hljs-regexp">/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg</span>
-  <span class="hljs-function"><span class="hljs-title">extractArgs</span> = <span class="hljs-params">(fn)</span> -&gt;</span>
+<span class="hljs-function">  <span class="hljs-title">extractArgs</span> = <span class="hljs-params">(fn)</span> -&gt;</span>
     args = fn.toString().replace(STRIP_COMMENTS, <span class="hljs-string">''</span>).match(FN_ARGS)
     <span class="hljs-keyword">if</span> args
       argName.match(FN_ARG)[<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> argName <span class="hljs-keyword">in</span> args[<span class="hljs-number">1</span>].split(FN_ARG_SPLIT) <span class="hljs-keyword">when</span> argName <span class="hljs-keyword">isnt</span> <span class="hljs-string">''</span>
-
-  <span class="hljs-function"><span class="hljs-title">fnKeys</span> = <span class="hljs-params">(obj)</span> -&gt;</span> key <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">of</span> obj <span class="hljs-keyword">when</span> key <span class="hljs-keyword">isnt</span> <span class="hljs-string">'$final'</span> <span class="hljs-keyword">and</span> (<span class="hljs-keyword">typeof</span> val <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">typeof</span> val <span class="hljs-keyword">is</span> <span class="hljs-string">'object'</span> <span class="hljs-keyword">and</span> val.length <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> val[val.length - <span class="hljs-number">1</span>] <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span>)
-
-  <span class="hljs-function"><span class="hljs-title">getGenerators</span> = <span class="hljs-params">(injector, obj, prefix)</span> -&gt;</span>
+<span class="hljs-function">
+  <span class="hljs-title">fnKeys</span> = <span class="hljs-params">(obj)</span> -&gt;</span> key <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">of</span> obj <span class="hljs-keyword">when</span> key <span class="hljs-keyword">isnt</span> <span class="hljs-string">'$final'</span> <span class="hljs-keyword">and</span> (<span class="hljs-keyword">typeof</span> val <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">typeof</span> val <span class="hljs-keyword">is</span> <span class="hljs-string">'object'</span> <span class="hljs-keyword">and</span> val.length <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> val[val.length - <span class="hljs-number">1</span>] <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span>)
+<span class="hljs-function">
+  <span class="hljs-title">getGenerators</span> = <span class="hljs-params">(injector, obj, prefix)</span> -&gt;</span>
     <span class="hljs-keyword">for</span> own key, fn <span class="hljs-keyword">of</span> obj
       <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> fn <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">and</span> fn.length <span class="hljs-keyword">is</span> <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> extractArgs(fn)[<span class="hljs-number">0</span>] <span class="hljs-keyword">is</span> <span class="hljs-string">'size'</span>
         injector[prefix + key] = fn
       getGenerators injector, fn, prefix + key + <span class="hljs-string">'_'</span>
     <span class="hljs-keyword">return</span>
-
-  <span class="hljs-function"><span class="hljs-title">initializeInjector</span> = <span class="hljs-params">(injectorConfig)</span> -&gt;</span>
+<span class="hljs-function">
+  <span class="hljs-title">initializeInjector</span> = <span class="hljs-params">(injectorConfig)</span> -&gt;</span>
     injector = {}
     getGenerators injector, qc, <span class="hljs-string">''</span>
     injector[key] = val <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">of</span> injectorConfig
     injector
 
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+  (size) -&gt;
     injector = initializeInjector(injectorConfig)
-    <span class="hljs-function"><span class="hljs-title">invoke</span> = <span class="hljs-params">(key, args)</span> -&gt;</span>
+<span class="hljs-function">    <span class="hljs-title">invoke</span> = <span class="hljs-params">(key, args, obj, result)</span> -&gt;</span>
       injectors = []
-      injector.<span class="hljs-function"><span class="hljs-title">$args</span> = -&gt;</span> args
-      <span class="hljs-function"><span class="hljs-title">fn</span> = -&gt;</span>
+      injector.$args = <span class="hljs-function">-&gt;</span> args
+<span class="hljs-function">      <span class="hljs-title">fn</span> = -&gt;</span>
       <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> obj[key] <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span>
         fn = obj[key]
         <span class="hljs-keyword">if</span> obj[key].$inject?
@@ -769,15 +767,31 @@ expect <span class="hljs-function"><span class="hljs-params">(drawCanvas)</span>
       <span class="hljs-keyword">else</span>
         fn = obj[key][obj[key].length - <span class="hljs-number">1</span>]
         injectors = obj[key].slice(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>)
-      fn.apply(obj, gen(size) <span class="hljs-keyword">for</span> gen <span class="hljs-keyword">in</span> injectors)
-
-
-    <span class="hljs-function"><span class="hljs-params">(args...)</span> -&gt;</span>
-      obj = <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> obj <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> obj(args) <span class="hljs-keyword">else</span> obj
-      steps = fnKeys obj
+      fnarguments = (gen(size) <span class="hljs-keyword">for</span> gen <span class="hljs-keyword">in</span> injectors)
+      result.trace.push({key, <span class="hljs-attribute">args</span>: fnarguments})
+      fn.apply(obj, fnarguments)
+<span class="hljs-function">
+    <span class="hljs-title">result</span> = <span class="hljs-params">(args...)</span> -&gt;</span>
+      result.trace = []
+      result.classMode = <span class="hljs-keyword">typeof</span> obj <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span>
+      callee = <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> obj <span class="hljs-keyword">is</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> obj(args) <span class="hljs-keyword">else</span> obj
+      steps = fnKeys callee
       execution = qc.arrayOf(qc.pick steps)(size)
-      invoke(key, args) <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> execution
-      <span class="hljs-keyword">if</span> obj.$final <span class="hljs-keyword">then</span> invoke(<span class="hljs-string">'$final'</span>, args) <span class="hljs-keyword">else</span> <span class="hljs-literal">undefined</span></pre></div></div>
+      invoke(key, args, callee, result) <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> execution
+      <span class="hljs-keyword">if</span> callee.$final <span class="hljs-keyword">then</span> invoke(<span class="hljs-string">'$final'</span>, args, callee, result) <span class="hljs-keyword">else</span> <span class="hljs-literal">undefined</span>
+
+    result.toString = <span class="hljs-function">-&gt;</span>
+      code = []
+      name = obj.name || injector.name || <span class="hljs-string">'Api'</span>
+      <span class="hljs-keyword">if</span> result.classMode
+        code.push <span class="hljs-string">"var obj = new <span class="hljs-subst">#{name}</span>(arguments);"</span>
+        name = <span class="hljs-string">'obj'</span>
+      <span class="hljs-keyword">for</span> {key, args} <span class="hljs-keyword">in</span> result.trace
+        ret = <span class="hljs-keyword">if</span> key <span class="hljs-keyword">is</span> <span class="hljs-string">'$final'</span> <span class="hljs-keyword">then</span> <span class="hljs-string">'return '</span> <span class="hljs-keyword">else</span> <span class="hljs-string">''</span>
+        code.push <span class="hljs-string">"<span class="hljs-subst">#{ret}</span><span class="hljs-subst">#{name}</span>.<span class="hljs-subst">#{key}</span>(<span class="hljs-subst">#{(JSON.stringify(arg) <span class="hljs-keyword">for</span> arg <span class="hljs-keyword">in</span> args).join(<span class="hljs-string">', '</span>)}</span>);"</span>
+
+      <span class="hljs-string">"function() {\n  <span class="hljs-subst">#{code.join(<span class="hljs-string">'\n  '</span>)}</span>\n}"</span>
+    result</pre></div></div>
             
         </li>
         
@@ -814,8 +828,8 @@ and returns a generator of that form of object.</p>
 </code></pre>
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">objectLike</span> = <span class="hljs-params">(template)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.objectLike = <span class="hljs-function"><span class="hljs-params">(template)</span> -&gt;</span>
+  (size) -&gt;
     result = {}
     <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">of</span> template
       <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> value == <span class="hljs-string">'function'</span>
@@ -837,8 +851,8 @@ and returns a generator of that form of object.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">objectOf</span> =  <span class="hljs-params">(generator, keygen = qc.string)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.objectOf =  <span class="hljs-function"><span class="hljs-params">(generator, keygen = qc.string)</span> -&gt;</span>
+  (size) -&gt;
     result = {}
     <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.qc.intUpto(size)]
       result[keygen(size)] = generator(i)
@@ -857,7 +871,7 @@ and returns a generator of that form of object.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">object</span> = <span class="hljs-params">(size)</span> -&gt;</span> qc.objectOf(qc.any)(size)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.object = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> qc.objectOf(qc.any)(size)</pre></div></div>
             
         </li>
         
@@ -885,7 +899,7 @@ and returns a generator of that form of object.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">char</span> = <span class="hljs-params">(size)</span> -&gt;</span> String.fromCharCode(qc.byte())</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.char = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> String.fromCharCode(qc.byte())</pre></div></div>
             
         </li>
         
@@ -900,7 +914,7 @@ and returns a generator of that form of object.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">string</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.string = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
   s = <span class="hljs-string">""</span>
   s += qc.char() <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.qc.intUpto(size)]
   s</pre></div></div>
@@ -918,7 +932,7 @@ and returns a generator of that form of object.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.string.<span class="hljs-function"><span class="hljs-title">ascii</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.string.ascii = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
   gen = qc.pick(makeRange(<span class="hljs-string">'a'</span>, <span class="hljs-string">'z'</span>, <span class="hljs-literal">true</span>).concat(makeRange(<span class="hljs-string">'0'</span>, <span class="hljs-string">'9'</span>)).concat([<span class="hljs-string">'_'</span>, <span class="hljs-string">' '</span>, <span class="hljs-string">'\n'</span>]))
   qc.arrayOf(gen)(size).join(<span class="hljs-string">''</span>)</pre></div></div>
             
@@ -936,8 +950,8 @@ the generators passed to it and then concatenate them into a single string.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.string.<span class="hljs-function"><span class="hljs-title">concat</span> = <span class="hljs-params">(gens)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span> (gen(size) <span class="hljs-keyword">for</span> gen <span class="hljs-keyword">in</span> gens).join(<span class="hljs-string">''</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>qc.string.concat = <span class="hljs-function"><span class="hljs-params">(gens)</span> -&gt;</span>
+  (size) -&gt; (gen(size) <span class="hljs-keyword">for</span> gen <span class="hljs-keyword">in</span> gens).join(<span class="hljs-string">''</span>)</pre></div></div>
             
         </li>
         
@@ -968,25 +982,25 @@ negated ranges <code>/[^b]/</code>.</li>
             
             <div class="content"><div class='highlight'><pre>generator =
   <span class="hljs-attribute">literal</span>: <span class="hljs-function"><span class="hljs-params">(lit, caseInsensitive)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> caseInsensitive<span class="hljs-function">
-     -&gt;</span> qc.choose(lit.toLowerCase(), lit.toUpperCase())
-    <span class="hljs-keyword">else</span><span class="hljs-function">
-     -&gt;</span> lit
+    <span class="hljs-keyword">if</span> caseInsensitive
+     -&gt; qc.choose(lit.toLowerCase(), lit.toUpperCase())
+    <span class="hljs-keyword">else</span>
+     -&gt; lit
   <span class="hljs-attribute">dot</span>: qc.except(qc.char, <span class="hljs-string">'\n'</span>)
   <span class="hljs-attribute">repeat</span>: <span class="hljs-function"><span class="hljs-params">(gen, min, max)</span> -&gt;</span>
-    <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+    (size) -&gt;
       (gen(size) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..qc.int.between(min, max)(size)]).join(<span class="hljs-string">''</span>)
-
-<span class="hljs-function"><span class="hljs-title">makeRange</span> = <span class="hljs-params">(from, to, caseInsensitive)</span> -&gt;</span>
+<span class="hljs-function">
+<span class="hljs-title">makeRange</span> = <span class="hljs-params">(from, to, caseInsensitive)</span> -&gt;</span>
   <span class="hljs-keyword">if</span> caseInsensitive
     lowerCase = (String.fromCharCode(charCode) <span class="hljs-keyword">for</span> charCode <span class="hljs-keyword">in</span> [from.toLowerCase().charCodeAt(<span class="hljs-number">0</span>)..to.toLowerCase().charCodeAt(<span class="hljs-number">0</span>)])
     upperCase = (String.fromCharCode(charCode) <span class="hljs-keyword">for</span> charCode <span class="hljs-keyword">in</span> [from.toUpperCase().charCodeAt(<span class="hljs-number">0</span>)..to.toUpperCase().charCodeAt(<span class="hljs-number">0</span>)])
     lowerCase.concat(upperCase)
   <span class="hljs-keyword">else</span>
     String.fromCharCode(charCode) <span class="hljs-keyword">for</span> charCode <span class="hljs-keyword">in</span> [from.charCodeAt(<span class="hljs-number">0</span>)..to.charCodeAt(<span class="hljs-number">0</span>)]
-
-<span class="hljs-function"><span class="hljs-title">makeComplimentaryRange</span> = <span class="hljs-params">(range)</span> -&gt;</span>
-  String.fromCharCode(char) <span class="hljs-keyword">for</span> char <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span><span class="hljs-number">.256</span>] <span class="hljs-keyword">when</span> <span class="hljs-keyword">not</span> (String.fromCharCode(char) <span class="hljs-keyword">in</span> range)</pre></div></div>
+<span class="hljs-function">
+<span class="hljs-title">makeComplimentaryRange</span> = <span class="hljs-params">(range)</span> -&gt;</span>
+  String.fromCharCode(char) <span class="hljs-keyword">for</span> char <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.<span class="hljs-number">256</span>] <span class="hljs-keyword">when</span> <span class="hljs-keyword">not</span> (String.fromCharCode(char) <span class="hljs-keyword">in</span> range)</pre></div></div>
             
         </li>
         
@@ -1004,7 +1018,7 @@ is made. <code>/^([a-z]) = (\d) * \(\1 \/ \2\)$</code> will result in a meaningf
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">capture</span> = <span class="hljs-params">(gen, captures, captureLevel)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+  (size) -&gt;
     value = gen(size)
     captures[captureLevel.toString()] ?= []
     captures[captureLevel.toString()].push(value)
@@ -1073,10 +1087,10 @@ value is an array of all captures on that level.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">when</span> <span class="hljs-string">'1'</span>, <span class="hljs-string">'2'</span>, <span class="hljs-string">'3'</span>, <span class="hljs-string">'4'</span>, <span class="hljs-string">'5'</span>, <span class="hljs-string">'6'</span>, <span class="hljs-string">'7'</span>, <span class="hljs-string">'8'</span>, <span class="hljs-string">'9'</span>
       <span class="hljs-keyword">if</span> captures
-        index = parseInt<span class="hljs-function"><span class="hljs-params">(token, <span class="hljs-number">10</span>)</span>
-        -&gt;</span>
+        index = parseInt(token, <span class="hljs-number">10</span>)
+        -&gt;
           offset = <span class="hljs-number">0</span>
-          <span class="hljs-keyword">for</span> level <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span><span class="hljs-number">.9</span>]
+          <span class="hljs-keyword">for</span> level <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.<span class="hljs-number">9</span>]
             <span class="hljs-keyword">if</span> captures[level.toString()]?
               <span class="hljs-keyword">if</span> index - offset &lt; captures[level.toString()].length
                 <span class="hljs-keyword">return</span> captures[level.toString()][index - offset]
@@ -1209,7 +1223,7 @@ the string generated does not include what’s after.</p>
       gens.push(<span class="hljs-function">-&gt;</span> token)
   qc.string.concat(gens)
 
-qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> = <span class="hljs-params">(pattern)</span> -&gt;</span>
+qc.string.matching = <span class="hljs-function"><span class="hljs-params">(pattern)</span> -&gt;</span>
   toks = pattern.source.split(<span class="hljs-string">''</span>)
   captures = {}
   patternGenerator = capture(generatorForPattern(toks, pattern.ignoreCase, captures, <span class="hljs-number">1</span>), captures, <span class="hljs-number">0</span>)
@@ -1250,7 +1264,7 @@ qc.string.<span class="hljs-function"><span class="hljs-title">matching</span> =
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">date</span> = <span class="hljs-params">(size)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>qc.date = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
   y = qc.intUpto <span class="hljs-number">3000</span>
   m = qc.intUpto <span class="hljs-number">12</span>
   d = qc.intUpto <span class="hljs-keyword">if</span> m <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">9</span>, <span class="hljs-number">11</span>] <span class="hljs-keyword">then</span> <span class="hljs-number">31</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> m <span class="hljs-keyword">in</span> [<span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">8</span>, <span class="hljs-number">10</span>] <span class="hljs-keyword">then</span> <span class="hljs-number">30</span> <span class="hljs-keyword">else</span> <span class="hljs-number">28</span>
@@ -1372,8 +1386,8 @@ towards simpler types with the following approx. distribution:</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>qc.<span class="hljs-function"><span class="hljs-title">location</span> = <span class="hljs-params">(size)</span> -&gt;</span>
-  <span class="hljs-function"><span class="hljs-title">rad2deg</span> = <span class="hljs-params">(n)</span> -&gt;</span> <span class="hljs-number">360</span> * n / (<span class="hljs-number">2</span> * Math.PI)
+            <div class="content"><div class='highlight'><pre>qc.location = <span class="hljs-function"><span class="hljs-params">(size)</span> -&gt;</span>
+<span class="hljs-function">  <span class="hljs-title">rad2deg</span> = <span class="hljs-params">(n)</span> -&gt;</span> <span class="hljs-number">360</span> * n / (<span class="hljs-number">2</span> * Math.PI)
   x = qc.random() * <span class="hljs-number">2</span> * Math.PI - Math.PI
   y = Math.PI / <span class="hljs-number">2</span> - Math.acos(qc.random() * <span class="hljs-number">2</span> - <span class="hljs-number">1</span>)
   [rad2deg(y), rad2deg(x)]</pre></div></div>
@@ -1406,9 +1420,9 @@ other testing toolkits.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> jasmine?
-  beforeEach<span class="hljs-function"> -&gt;</span>
+  beforeEach -&gt;
     jasmine.addMatchers
-      <span class="hljs-attribute">forAll</span>:<span class="hljs-function"> -&gt;</span>
+      <span class="hljs-attribute">forAll</span>: <span class="hljs-function">-&gt;</span>
         <span class="hljs-attribute">compare</span>: qc</pre></div></div>
             
         </li>
