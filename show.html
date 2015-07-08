@@ -69,7 +69,7 @@
             var output = frag.querySelector('.result');
             output.innerText = "";
             var lines = 0;
-            while (lines < 5) {
+            while (lines < 4) {
               var r = JSON.stringify(result(qc.intUpto(100)), null, 2);
               output.innerText += r + '\n';
               lines += r.split('\n').length;
