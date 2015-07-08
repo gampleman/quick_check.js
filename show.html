@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <script src="https://rawgit.com/gampleman/quick_check.js/master/dist/jasmine-quick-check.js" charset="utf-8"></script>
+
+    <body>
+      <pre><b><code id="example"></code></b></pre>
+      <pre><code id="result"></code></pre>
+      <button id="regenerate" title="New Example" style="position: absolute; top: 10px; right: 10px">&#x267B;</button>
+      <script>
+        var data = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+        document.getElementById('example').innerText = data;
+        function generate() {
+          var result = eval(data);
+          document.getElementById('result').innerText = result(qc.intUpto(100));
+        }
+        document.getElementById('regenerate').addEventListener('click', generate);
+        generate();
+      </script>
+    </body>
+  </head>
+</html>
