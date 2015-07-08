@@ -1,20 +1,51 @@
 <html>
   <head>
     <script src="https://rawgit.com/gampleman/quick_check.js/master/dist/jasmine-quick-check.js" charset="utf-8"></script>
-
+    <style>
+    body {
+      font-weight: 400;
+      font-family: Open Sans, sans-serif;
+    }
+    code, pre {
+      font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: normal;
+      line-height: 1;
+      margin: 2em 0 0.5em;
+      color: #a1a1b3;
+    }
+    </style>
     <body>
-      <pre><b><code id="example"></code></b></pre>
-      <pre><code id="result"></code></pre>
+      <h2>Example</h2>
       <button id="regenerate" title="New Example" style="position: absolute; top: 10px; right: 10px">&#x267B;</button>
+      <div class="resultset">
+        <pre><b><code class="example"></code></b></pre>
+        <pre><code class="result"></code></pre>
+      </div>
       <script>
-        var data = decodeURIComponent(window.location.hash.replace(/^#/, '') || window.location.search.replace(/^\?/, ''));
-        document.getElementById('example').innerText = data;
+        var data = (window.location.hash.replace(/^#/, '') || window.location.search.replace(/^\?/, '')).split('&').map(function(r) {
+          return decodeURIComponent(r);
+        });
+        var template = document.querySelector('.resultset').cloneNode(true);
         function generate() {
-          var result = eval(data);
-          document.getElementById('result').innerText = "";
-          for (var i = 0; i < 4; i++) {
-            document.getElementById('result').innerText += JSON.stringify(result(qc.intUpto(100)), null, 2) + '\n';
+          var res = document.querySelectorAll('.resultset');
+          for (var i = 0; i < res.length; i++) {
+            document.body.removeChild(res[i]);
           }
+          data.forEach(function(code) {
+            var result = eval(code);
+            var frag = template.cloneNode(true);
+            frag.querySelector('.example').innerText = code;
+            var output = frag.querySelector('.result');
+            output.innerText = "";
+            for (var i = 0; i < 4; i++) {
+              output.innerText += JSON.stringify(result(qc.intUpto(100)), null, 2) + '\n';
+            }
+            document.body.appendChild(frag);
+          });
         }
         document.getElementById('regenerate').addEventListener('click', generate);
         generate();
