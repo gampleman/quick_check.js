@@ -7,11 +7,14 @@
       <pre><code id="result"></code></pre>
       <button id="regenerate" title="New Example" style="position: absolute; top: 10px; right: 10px">&#x267B;</button>
       <script>
-        var data = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+        var data = decodeURIComponent(window.location.hash.replace(/^#/, '') || window.location.search.replace(/^\?/, ''));
         document.getElementById('example').innerText = data;
         function generate() {
           var result = eval(data);
-          document.getElementById('result').innerText = result(qc.intUpto(100));
+          document.getElementById('result').innerText = "";
+          for (var i = 0; i < 4; i++) {
+            document.getElementById('result').innerText += JSON.stringify(result(qc.intUpto(100)), null, 2) + '\n';
+          }
         }
         document.getElementById('regenerate').addEventListener('click', generate);
         generate();
