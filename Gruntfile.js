@@ -55,13 +55,10 @@ module.exports = function (grunt) {
 
     concat: {
       dist: {
-        files: [{
-          src:  ['src/quick-check.js'],
-          dest: 'dist/quick-check.js',
-        }, {
-          src: ['src/quick-check.js'],
-          dist: 'dist/jasmine-quick-check.js'
-        }],
+        files: {
+          'dist/quick-check.js':  ['src/quick-check.js'],
+          'dist/jasmine-quick-check.js': ['src/quick-check.js'],
+        },
         options: {
           banner: "(function(){ \n 'use strict';\n",
           footer: "})();"

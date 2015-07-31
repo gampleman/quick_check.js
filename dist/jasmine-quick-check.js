@@ -1076,11 +1076,20 @@ if (typeof jasmine !== "undefined" && jasmine !== null) {
 var __slice = [].slice;
 
 if (typeof QUnit !== "undefined" && QUnit !== null) {
-  QUnit.assert.forEach = function() {
+  QUnit.assert.forAll = function() {
     var examples, generators, message, pass, property, _ref;
     property = arguments[0], generators = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
     _ref = qc.apply(null, [property].concat(__slice.call(generators))), pass = _ref.pass, examples = _ref.examples, message = _ref.message;
-    return QUnit.push(pass, property, examples, message);
+    return this.push(pass, property, examples, message);
+  };
+}
+
+if (typeof QUnit !== "undefined" && QUnit !== null) {
+  QUnit.assert.forEach = function() {
+    var args, _ref;
+    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    console.warn("assert.forEach is deprecated. Please use assert.forAll.");
+    return (_ref = QUnit.assert).forAll.apply(_ref, args);
   };
 }
 })();
