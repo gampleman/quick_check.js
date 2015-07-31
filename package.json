@@ -1,15 +1,22 @@
 {
   "name": "quick_check",
   "description": "QuickCheck for JavaScript",
-  "keywords": ["QuickCheck", "testing", "property testing", "functional programming"],
+  "keywords": [
+    "QuickCheck",
+    "testing",
+    "property testing",
+    "functional programming"
+  ],
   "bugs": {
     "url": "https://githug.com/gampleman/quick_check.js/issues"
   },
   "license": "MIT",
   "homepage": "https://github.com/gampleman/quick_check.js",
   "author": "Jakub Hampl (http://gampleman.eu)",
-  "files": ["dist"],
-  "main": "dist/jasmine-quick-check.js",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/quick-check.js",
   "devDependencies": {
     "docco": "~0.6.3",
     "grunt": "~0.4.2",
@@ -26,14 +33,16 @@
     "karma": "~0.12.0",
     "karma-jasmine": "~0.2.2",
     "karma-phantomjs-launcher": "~0.1.2",
+    "karma-qunit": "^0.1.5",
     "load-grunt-tasks": "~0.4.0",
-    "phantomjs": "~1.9"
+    "phantomjs": "~1.9",
+    "qunitjs": "^1.18.0"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/gampleman/quick_check.js.git"
   },
-  "version": "0.5.1",
+  "version": "0.6.0",
   "scripts": {
     "test": "node_modules/.bin/grunt ci"
   }

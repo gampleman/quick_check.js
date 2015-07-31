@@ -8,19 +8,23 @@ module.exports = function (grunt) {
   initConfig = {
     karma: {
       options: {
-        configFile: 'karma.conf.js',
         client: {
           captureConsole: true,
           useIframe: true
         }
-
       },
       unit: {
-        // singleRun: true,
+        configFile: 'spec/config/jasmine.conf.js',
         browsers: ['PhantomJS'],
         background: true
       },
-      continuous: {
+      qunit: {
+        configFile: 'spec/config/qunit.conf.js',
+        browsers: ['PhantomJS'],
+        singleRun: true
+      },
+      jasmine: {
+        configFile: 'spec/config/jasmine.conf.js',
         singleRun: true,
         browsers: ['PhantomJS']
       }
@@ -36,22 +40,28 @@ module.exports = function (grunt) {
 
     coffee: {
       source: {
-        files: {'src/jasmine-quick-check.js' : ['src/*.coffee', 'src/generators/*.coffee', 'src/integrations/*.coffee']},
+        files: {'src/quick-check.js' : ['src/*.coffee', 'src/generators/*.coffee', 'src/integrations/*.coffee']},
         options: {
           bare: true
         }
       },
       spec: {
         files: {
-          'spec/quick_check_spec.js': 'spec/*.coffee'
+          'spec/jasmine/quick_check_spec.js': 'spec/jasmine/*.coffee',
+          'spec/qunit/quick_check_spec.js': 'spec/qunit/*.coffee'
         }
       }
     },
 
     concat: {
       dist: {
-        src:  ['src/jasmine-quick-check.js'],
-        dest: 'dist/jasmine-quick-check.js',
+        files: [{
+          src:  ['src/quick-check.js'],
+          dest: 'dist/quick-check.js',
+        }, {
+          src: ['src/quick-check.js'],
+          dist: 'dist/jasmine-quick-check.js'
+        }],
         options: {
           banner: "(function(){ \n 'use strict';\n",
           footer: "})();"
@@ -139,7 +149,7 @@ module.exports = function (grunt) {
   grunt.registerTask('dist', ['coffee', 'concat:dist']);
   grunt.registerTask('docs', ['concat:docs', 'docco:source']);
   grunt.registerTask('release', ['dist', 'docs', 'concat:docs2', 'gh-pages:publish', 'clean']);
-  grunt.registerTask('ci', ['coffee', 'karma:continuous', 'clean']);
+  grunt.registerTask('ci', ['coffee', 'karma:jasmine', 'karma:qunit', 'clean']);
   grunt.registerTask('deploy', 'Publish docs from TravisCI', ['dist', 'docs', 'concat:docs2', 'gh-pages:deploy']);
 
   grunt.initConfig(initConfig);

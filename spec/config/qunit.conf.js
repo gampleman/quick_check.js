@@ -4,16 +4,17 @@ module.exports = function(config) {
   config.set({
 
     // base path, that will be used to resolve files and exclude
-    basePath: '.',
+    basePath: '../../',
 
     // frameworks to use
-    frameworks: ['jasmine'],
+    frameworks: ['qunit'],
+
+    plugins: ['karma-qunit', 'karma-phantomjs-launcher'],
 
     // list of files / patterns to load in the browser
     files: [
-      'node_modules/seedrandom/seedrandom.js',
-      'src/jasmine-quick-check.js',
-      'spec/**/*.js'
+      'src/quick-check.js',
+      'spec/qunit/**/*.js'
     ],
 
     // test results reporter to use

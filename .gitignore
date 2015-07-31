@@ -1,4 +1,5 @@
 node_modules
 src/**/*.js
-spec/**/*.js
+spec/jasmine/*.js
+spec/qunit/*.js
 .grunt
