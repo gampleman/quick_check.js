@@ -39,7 +39,7 @@ For more information [check out my talk](https://vimeo.com/98737599) or read the
 
 # Installing
 
-Karma + Jasmine combo should be supported easily. Simply `npm install quick-check --save-dev`,
+Karma + Jasmine combo should be supported easily. Simply `npm install quick_check --save-dev`,
 then add `'node_modules/quick_check/dist/quick-check.js'` to your `files` config.
 
 QUnit should also work, but isn't being currently tested.
