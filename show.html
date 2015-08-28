@@ -1,0 +1,90 @@
+<html>
+  <head>
+    <script src="https://rawgit.com/gampleman/quick_check.js/master/dist/jasmine-quick-check.js" charset="utf-8"></script>
+    <style>
+    body {
+      font-weight: 400;
+      font-family: Open Sans, sans-serif;
+      padding: 0;
+      margin: 0;
+    }
+    code, pre {
+      font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+    pre .example {
+      font-size: 14px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: normal;
+      line-height: 1;
+      margin: 0 0 0.5em;
+      color: #a1a1b3;
+    }
+    .resultContainer {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+
+      -webkit-flex-direction: column;
+      flex-direction: column;
+      -webkit-flex-wrap: wrap;
+      flex-wrap: wrap;
+      height: 250px;
+      max-width: 750px;
+      -webkit-align-content: space-between;
+      align-content: space-between;
+    }
+    .resultset {
+      min-height: 80px;
+      min-width: 100px;
+      -webkit-flex-grow: 1;
+      flex-grow: 1;
+    }
+    </style>
+    <body>
+      <h2>Example</h2>
+      <button id="regenerate" title="New Example" style="position: absolute; top: 10px; right: 10px">&#x267B;</button>
+      <div class="resultContainer">
+        <div class="resultset">
+          <pre><b><code class="example"></code></b></pre>
+          <pre><code class="result"></code></pre>
+        </div>
+      </div>
+      <script>
+        var data = (window.location.hash.replace(/^#/, '') || window.location.search.replace(/^\?/, '')).split('&').map(function(r) {
+          return decodeURIComponent(r);
+        });
+        var container = document.querySelector('.resultContainer');
+        var template = document.querySelector('.resultset').cloneNode(true);
+        function generate() {
+          var res = document.querySelectorAll('.resultset');
+          for (var i = 0; i < res.length; i++) {
+            container.removeChild(res[i]);
+          }
+          var lastChild = null;
+          data.forEach(function(code) {
+            var result = eval(code);
+            var frag = template.cloneNode(true);
+            frag.querySelector('.example').innerText = code;
+            var output = frag.querySelector('.result');
+            output.innerText = "";
+            var lines = 0;
+            while (lines < 4) {
+              var r = JSON.stringify(result(qc.intUpto(100)), null, 2);
+              output.innerText += r + '\n';
+              lines += r.split('\n').length;
+            }
+            lastChild = frag;
+            container.appendChild(frag);
+          });
+          window.lastChild = lastChild;
+        }
+        document.getElementById('regenerate').addEventListener('click', generate);
+        generate();
+      </script>
+      <style></style>
+    </body>
+  </head>
+</html>
