@@ -101,10 +101,10 @@ qc.dice('2d6') == ->
 `qc.char` will return a random string with a single chararcter.
 
 ### `qc.string`
-`qc.string` will generate a string of random charachters.
+`qc.string` will generate a string of random characters.
 
 ### `qc.string.ascii`
-`qc.string.ascii` will generate a string of random ascii charachters.
+`qc.string.ascii` will generate a string of random ascii characters.
 
 ### `qc.string.concat`
 `qc.string.concat` is a generator combinator (see below) that will generate all
