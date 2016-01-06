@@ -8,18 +8,31 @@
 # The qc function will generate 100 test cases and run the supplied property.
 # Based on the resulting value, we either succeed, fail or skip the test. Additionally
 # if a string is returned we classify the tests based on the returned string.
+#
+# For failed cases we want to then make the example minimal in a process called
+# shrinking (more on this later on).
 qc = (prop, generators...) ->
   num = 100; skipped = 0; hist = {}
   for i in [0...num]
     examples = (generator(i) for generator in generators)
     result = prop(examples...)
     if result == false
-      skippedString = if skipped > 0 then " (#{skipped} skipped)" else ""
-      return {
-        pass: no,
-        examples: examples,
-        message: "Falsified after #{i + 1} attempt#{if i == 0 then '' else 's'}#{skippedString}. Counter-example: #{stringify(examples, generators)}"
-      }
+      if qc._performShrinks
+        minimal = findMinimalExample(prop, examples, generators)
+        skippedString = if skipped > 0 then " (#{skipped} skipped)" else ""
+        return {
+          pass: no,
+          examples: examples,
+          minimalExamples: minimal.examples,
+          message: "Falsified after #{i + 1} attempt#{if i == 0 then '' else 's'}#{skippedString}. Counter-example (after #{minimal.shrinkCount} shrinks): #{stringify(minimal.examples, generators)}\n\nNon-shrunk counter-example: #{stringify(examples, generators)}"
+        }
+      else
+        skippedString = if skipped > 0 then " (#{skipped} skipped)" else ""
+        return {
+          pass: no,
+          examples: examples,
+          message: "Falsified after #{i + 1} attempt#{if i == 0 then '' else 's'}#{skippedString}. Counter-example: #{stringify(examples, generators)}"
+        }
     if result == undefined
       num++; skipped++
       if skipped > 200

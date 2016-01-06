@@ -7,3 +7,9 @@ if jasmine?
     jasmine.addMatchers
       forAll: ->
         compare: qc
+        negativeCompare: (prop, gens...) ->
+          orig = qc._performShrinks
+          qc._performShrinks = false
+          {pass, examples, message} = qc(prop, gens...)
+          qc._performShrinks = orig
+          {examples, message, pass: !pass}

@@ -35,12 +35,12 @@ module.exports = function (grunt) {
         'src/**/*.coffee',
         'spec/**/*.coffee'
       ],
-      tasks: ['coffee', 'karma:unit:run', 'docs']
+      tasks: ['coffee', 'regenerator', 'karma:unit:run', 'docs']
     },
 
     coffee: {
       source: {
-        files: {'src/quick-check.js' : ['src/*.coffee', 'src/generators/*.coffee', 'src/integrations/*.coffee']},
+        files: {'src/quick-check.es6.js' : ['src/quick_check_library.coffee', 'src/*.coffee', 'src/generators/*.coffee', 'src/integrations/*.coffee']},
         options: {
           bare: true
         }
@@ -50,6 +50,15 @@ module.exports = function (grunt) {
           'spec/jasmine/quick_check_spec.js': 'spec/jasmine/*.coffee',
           'spec/qunit/quick_check_spec.js': 'spec/qunit/*.coffee'
         }
+      }
+    },
+
+    regenerator: {
+      options: {
+        includeRuntime: true,
+      },
+      source: {
+        files: {'src/quick-check.js' : ['src/quick-check.es6.js']}
       }
     },
 
@@ -65,7 +74,7 @@ module.exports = function (grunt) {
         }
       },
       docs: {
-        src: ['src/quick_check_library.coffee', 'src/generators/basic.coffee', 'src/generators/combinators.coffee', 'src/generators/number.coffee', 'src/generators/array.coffee', 'src/generators/functions.coffee', 'src/generators/object.coffee', 'src/generators/string.coffee', 'src/generators/various.coffee', 'src/integrations/jasmine_extension.coffee'],
+        src: ['src/quick_check_library.coffee', 'src/generators/basic.coffee', 'src/generators/combinators.coffee', 'src/generators/number.coffee', 'src/generators/array.coffee', 'src/generators/functions.coffee', 'src/generators/object.coffee', 'src/generators/string.coffee', 'src/generators/various.coffee', 'src/shrink.coffee', 'src/integrations/jasmine_extension.coffee'],
         dest: 'docs/quick_check.coffee'
       },
       docs2: {
@@ -143,10 +152,10 @@ module.exports = function (grunt) {
 	});
 
   grunt.registerTask('test', [ 'karma:unit:start', 'watch']);
-  grunt.registerTask('dist', ['coffee', 'concat:dist']);
+  grunt.registerTask('dist', ['coffee', 'regenerator', 'concat:dist']);
   grunt.registerTask('docs', ['concat:docs', 'docco:source']);
   grunt.registerTask('release', ['dist', 'docs', 'concat:docs2', 'gh-pages:publish', 'clean']);
-  grunt.registerTask('ci', ['coffee', 'karma:jasmine', 'karma:qunit', 'clean']);
+  grunt.registerTask('ci', ['coffee', 'regenerator', 'karma:jasmine', 'karma:qunit', 'clean']);
   grunt.registerTask('deploy', 'Publish docs from TravisCI', ['dist', 'docs', 'concat:docs2', 'gh-pages:deploy']);
 
   grunt.initConfig(initConfig);
