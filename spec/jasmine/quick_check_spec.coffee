@@ -13,7 +13,7 @@ describe 'qc', ->
       #qc.forAll qc.string, (str) ->
       #  expect(str.toUpperCase()).not.toMatch(/[a-z]/g)
 
-  it 'can show postive message', ->
+  it 'can show positive message', ->
     prop = (i) ->
       if i % 2 == 0
         (i + i) % 2 == 0
@@ -43,4 +43,4 @@ describe 'qc', ->
 
   it '#filter will always return a smaller list', ->
     filter = (list, f) -> elem for elem in list when f(elem)
-    expect((list, f) -> filter(list, f).length < list.length).not.forAll(qc.arrayOf(qc.int), qc.function(qc.int, qc.bool))
+    expect((list, f) -> filter(list, f).length <= list.length).forAll(qc.arrayOf(qc.int), qc.function(qc.int, qc.bool))

@@ -15,7 +15,7 @@ qc.real.large = (size) -> qc.choose(1, -1) * qc.ureal.large()
 qc.uint = (size) -> qc.intUpto(adjust size * size)
 qc.uint.large = (size) -> Math.floor(qc.random() * Number.MAX_VALUE)
 
-qc.int = (size) -> qc.choose(1, -1) * qc.intUpto(adjust size)
+qc.int = (size) -> qc.choose(1, -1) * qc.intUpto(adjust size * size)
 qc.int.large = (size) -> qc.choose(1, -1) * qc.uint.large()
 qc.int.between = (min, max) ->
   (size) ->
