@@ -37,7 +37,7 @@ qc.array = (size) -> qc.arrayOf(qc.any)(if size > 1 then size - 1 else 0)
 #
 # For example `qc.array.subsetOf([1,2,3,4])(size)` could yield `[3, 1]`.
 qc.array.subsetOf = (array, options = {}) ->
-  options.length ?= qc.intUpto array.length
+  options.length ?= qc.intUpto array.length + 1
   options = normalizeOptions(options)
   (size) ->
     copy = array.slice()

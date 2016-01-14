@@ -38,3 +38,19 @@ describe 'array', ->
       expect (arr, size) ->
         qc.array.subsetOf(arr)(size).length <= arr.length
       .forAll qc.array, identity
+    it 'will be exactly length if length is a number', ->
+      expect (arr, size) ->
+        res = qc.array.subsetOf(arr, length: 10)(size)
+        res.length is 10
+      .forAll qc.array, identity
+    it 'the number of elements will range throughout the length of the input by default', ->
+      min = Infinity
+      max = -Infinity
+      arr = [1..10]
+      qc.forAll (size) ->
+        len = qc.array.subsetOf(arr)(size).length
+        min = Math.min(min, len)
+        max = Math.max(max, len)
+      , identity
+      expect(max).toBe 10
+      expect(min).toBe 0
