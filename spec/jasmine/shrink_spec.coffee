@@ -11,5 +11,5 @@ describe 'shrinking', ->
       # expect(sum(result.minimalExamples[0])).toEqual(-1000)
 
   it 'shrinks strings', ->
-    prop = (str) -> !str.match(/a.*b/)
-    expect(qc(prop, qc.string).minimalExamples[0]).toEqual('ab')
+    prop = (str) -> !/a.*b/.test(str)
+    expect(qc(prop, qc.string.ascii).minimalExamples[0]).toEqual('ab')
