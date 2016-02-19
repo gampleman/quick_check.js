@@ -2,5 +2,7 @@ node_modules
 src/**/*.js
 spec/jasmine/*.js
 spec/qunit/*.js
+spec/typescript-mocha/*.js
 .grunt
 docs/
+.tscache

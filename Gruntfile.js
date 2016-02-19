@@ -27,6 +27,11 @@ module.exports = function (grunt) {
         configFile: 'spec/config/jasmine.conf.js',
         singleRun: true,
         browsers: ['PhantomJS']
+      },
+      "typescript-mocha": {
+        configFile: 'spec/config/typescript-mocha.conf.js',
+        singleRun: true,
+        browsers: ['PhantomJS']
       }
     },
 
@@ -89,6 +94,13 @@ module.exports = function (grunt) {
         options: {
           output: 'docs/'
         }
+      }
+    },
+
+    ts: {
+      default : {
+        src: ["**/*.ts", "!node_modules/**/*.ts"],
+        tsconfig: true
       }
     },
 
@@ -155,7 +167,7 @@ module.exports = function (grunt) {
   grunt.registerTask('dist', ['coffee', 'regenerator', 'concat:dist']);
   grunt.registerTask('docs', ['concat:docs', 'docco:source']);
   grunt.registerTask('release', ['dist', 'docs', 'concat:docs2', 'gh-pages:publish', 'clean']);
-  grunt.registerTask('ci', ['coffee', 'regenerator', 'karma:jasmine', 'karma:qunit', 'clean']);
+  grunt.registerTask('ci', ['coffee', 'regenerator', 'ts', 'karma:jasmine', 'karma:qunit', 'karma:typescript-mocha',  'clean']);
   grunt.registerTask('deploy', 'Publish docs from TravisCI', ['dist', 'docs', 'concat:docs2', 'gh-pages:deploy']);
 
   grunt.initConfig(initConfig);

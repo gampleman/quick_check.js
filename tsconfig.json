@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "target": "es3",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "isolatedModules": false,
+        "jsx": "react",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": false,
+        "noImplicitAny": true,
+        "removeComments": true,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "sourceMap": false
+    },
+    "filesGlob": [
+        "**/*.ts",
+        "**/*.tsx",
+        "!node_modules/**"
+    ],
+    "compileOnSave": true,
+    "buildOnSave": false,
+    "atom": {
+        "rewriteTsconfig": true
+    },
+    "files": [
+        "dist/quick-check.d.ts",
+        "spec/typescript-mocha/quick_check_spec.ts",
+        "spec/typescript-mocha/typings/mocha/mocha.d.ts",
+        "spec/typescript-mocha/typings/tsd.d.ts"
+    ]
+}

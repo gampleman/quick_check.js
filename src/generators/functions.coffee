@@ -46,6 +46,8 @@ qc.function =  (args..., returnGenerator) ->
     result
   generator
 
+# This alias is for languages that don't like the reserved word as an identifier.
+qc.pureFunction = qc.function
 # To lookup things in the table we need a notion of equality. QuickCheck currently
 # supports only equality testing with `===`, however in future versions we will
 # hopefully lift this limitation.
