@@ -67,7 +67,6 @@ qc.forAll = (generators..., prop) ->
   for i in [0...100]
     examples = (generator(i) for generator in generators)
     prop(examples...)
-  return
 
 # We make our own alias of the random function. When writing your own generators,
 # use of this is required, because some planned features in the future may require
