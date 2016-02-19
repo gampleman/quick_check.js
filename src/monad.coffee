@@ -12,9 +12,5 @@ map = (fun, gen) -> (size) -> fun(gen(size))
 qc.map = (fun, gen) ->
   if arguments.length == 1 then (gen) -> map(fun, gen) else map(fun, gen)
 
-# `qc.modify` is the alias of map for the non-functional-programming crowd.
-# The arguments are reversed and it doesn't curry.
-qc.modify = (gen, fun) -> map(fun, gen)
-
 # `qc.join` is needed to be a 'real' mondad.
 qc.join = (gen) -> (size) -> gen(size)(size)
