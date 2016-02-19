@@ -3,6 +3,7 @@ node_js:
 - '0.10'
 deploy:
   provider: npm
+  email: jakub.hampl@rightscale.com
   on:
     tags: true
     repo: gampleman/quick_check.js
