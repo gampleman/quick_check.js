@@ -5,6 +5,25 @@ module.exports = function (grunt) {
 
   require('load-grunt-tasks')(grunt);
 
+  var FILES = [
+    'src/quick_check_library.coffee',
+    'src/monad.coffee',
+    'src/shrink.coffee',
+    // generators
+    'src/generators/basic.coffee',
+    'src/generators/combinators.coffee',
+    'src/generators/number.coffee',
+    'src/generators/array.coffee',
+    'src/generators/functions.coffee',
+    'src/generators/object.coffee',
+    'src/generators/string.coffee',
+    'src/generators/date.coffee',
+    'src/generators/various.coffee',
+    // integrations
+    'src/integrations/jasmine_extension.coffee',
+    'src/integrations/qunit_extension.coffee'
+  ];
+
   initConfig = {
     karma: {
       options: {
@@ -45,7 +64,7 @@ module.exports = function (grunt) {
 
     coffee: {
       source: {
-        files: {'src/quick-check.es6.js' : ['src/quick_check_library.coffee', 'src/*.coffee', 'src/generators/*.coffee', 'src/integrations/*.coffee']},
+        files: {'src/quick-check.es6.js' : FILES},
         options: {
           bare: true
         }
@@ -79,7 +98,7 @@ module.exports = function (grunt) {
         }
       },
       docs: {
-        src: ['src/quick_check_library.coffee', 'src/generators/basic.coffee', 'src/generators/combinators.coffee', 'src/generators/number.coffee', 'src/generators/array.coffee', 'src/generators/functions.coffee', 'src/generators/object.coffee', 'src/generators/string.coffee', 'src/generators/various.coffee', 'src/shrink.coffee', 'src/integrations/jasmine_extension.coffee'],
+        src: FILES,
         dest: 'docs/quick_check.coffee'
       },
       docs2: {

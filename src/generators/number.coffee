@@ -16,10 +16,10 @@ qc.uint = (size) -> qc.intUpto(adjust size * size)
 qc.uint.large = (size) -> Math.floor(qc.random() * Number.MAX_VALUE)
 
 qc.int = (size) -> qc.choose(1, -1) * qc.intUpto(adjust size * size)
-qc.int.large = (size) -> qc.choose(1, -1) * qc.uint.large()
+qc.int.large = (size) -> qc.choose(1, -1) * qc.uint.large(size)
 qc.int.between = (min, max) ->
   (size) ->
-    min + qc.intUpto(Math.min(max + 1 - min, adjust size))
+    min + qc.intUpto(max + 1 - min)
 
 qc.natural = (size) -> qc.intUpto(adjust size * size) + 1
 qc.natural.large = (size) -> Math.ceil(qc.random() * Number.MAX_VALUE)
@@ -31,17 +31,28 @@ qc.natural.large = (size) -> Math.ceil(qc.random() * Number.MAX_VALUE)
 #     expect(([min, max]) -> min <= max).forAll(qc.range.inclusive(qc.real))
 #     expect(([min, max]) -> 0 <= min < max).forAll(qc.range(qc.ureal))
 #     expect(([min, max]) -> 0 < min < max).forAll(qc.range(qc.natural))
+#
+# This generator can be any kind as long as it fullfills the following conditions:
+#
+#    1. It has a sensible notion of `<` and `>`.
+#    2. It does equality based on the value of its `valueOf` call. (This
+#       condition isn't required for the inclusive range).
+#    3. The generator returns more than one value with a reasonable probability. (This
+#       condition isn't required for the inclusive range).
 qc.range = (gen = qc.real) ->
   (size) ->
-    start = gen(size)
-    end = start + Math.abs(gen(size))
-    end += 1 if start is end
-    [start, end]
+    for iteration in [0..100]
+      start = gen(size); end = gen(size)
+      continue if start.valueOf() == end.valueOf()
+      [start, end] = [end, start] if end < start
+      return [start, end]
+    throw new Error('qc.range failed to generate two values that were not equal to each other over 100 trials.')
 
 qc.range.inclusive = (gen = qc.real) ->
   (size) ->
-    start = gen(size)
-    [start, start + Math.abs(gen(size))]
+    start = gen(size); end = gen(size)
+    [start, end] = [end, start] if end < start
+    [start, end]
 
 # The dice generator takes a D&D style dice string and transforms it into a random
 # number generator. This can serve as a very quick method how to quickly approximate
