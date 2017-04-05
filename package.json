@@ -32,7 +32,7 @@
     "grunt-regenerator": "^4.0.0",
     "grunt-ts": "^5.3.2",
     "jasmine-reporters": "~2.2.0",
-    "karma": "~1.5.0",
+    "karma": "~1.6.0",
     "karma-jasmine": "~1.1.0",
     "karma-mocha": "^1.1.1",
     "karma-phantomjs-launcher": "~1.0.1",
