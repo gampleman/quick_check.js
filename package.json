@@ -21,7 +21,7 @@
     "docco": "~0.7.0",
     "grunt": "~1.0.1",
     "grunt-cli": "~1.2.0",
-    "grunt-contrib-clean": "~1.0.0",
+    "grunt-contrib-clean": "~1.1.0",
     "grunt-contrib-coffee": "~1.0.0",
     "grunt-contrib-concat": "~1.0.1",
     "grunt-contrib-uglify": "~2.2.0",
