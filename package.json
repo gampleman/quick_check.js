@@ -18,7 +18,7 @@
   ],
   "main": "dist/quick-check.js",
   "devDependencies": {
-    "docco": "~0.7.0",
+    "docco": "~0.8.0",
     "grunt": "~1.0.1",
     "grunt-cli": "~1.2.0",
     "grunt-contrib-clean": "~1.1.0",
