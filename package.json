@@ -25,7 +25,7 @@
     "grunt-contrib-coffee": "~1.0.0",
     "grunt-contrib-concat": "~1.0.1",
     "grunt-contrib-uglify": "~3.3.0",
-    "grunt-contrib-watch": "~1.0.0",
+    "grunt-contrib-watch": "~1.0.1",
     "grunt-docco": "~0.5.0",
     "grunt-gh-pages": "~2.0.0",
     "grunt-karma": "~2.0.0",
