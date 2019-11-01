@@ -3,6 +3,8 @@
 quick_check.js is an implementation of QuickCheck in JavaScript. (Actually the
 implementation is written in CoffeeScript, but that doesn't matter much).
 
+**Note:** I would now recommend new users to look into [fast-check](https://github.com/dubzzz/fast-check) which is a more modern alternative to this project.
+
 It works by integrating with existing test libraries. For example Jasmine
 expectations are written like this:
 
