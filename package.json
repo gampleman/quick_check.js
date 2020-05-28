@@ -34,7 +34,7 @@
     "jasmine-core": "^3.0.0",
     "jasmine-reporters": "~2.3.0",
     "karma": "~2.0.0",
-    "karma-jasmine": "~1.1.0",
+    "karma-jasmine": "~3.3.0",
     "karma-mocha": "^1.1.1",
     "karma-phantomjs-launcher": "~1.0.1",
     "karma-qunit": "^2.0.0",
